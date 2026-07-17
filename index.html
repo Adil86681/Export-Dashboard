@@ -1446,6 +1446,7 @@
   <!-- TAB NAVIGATION -->
   <div class="tab-nav">
     <button class="tab-btn active" onclick="switchTab('calculator')">📦 Rate Calculator</button>
+    <button class="tab-btn" onclick="switchTab('saved-quotes')">💾 Saved Quotes</button>
     <button class="tab-btn" onclick="switchTab('repository')">📋 Shipment Repository</button>
     <button class="tab-btn" onclick="switchTab('products')">🗂 Product Info</button>
     <button class="tab-btn" onclick="switchTab('quote')">📝 Create Quote</button>
@@ -1465,7 +1466,6 @@
           <option value="">— Select warehouse —</option>
           <option value="us">🇺🇸 US (Salt Lake City)</option>
           <option value="de">🇩🇪 Germany (EU)</option>
-          <option value="de_ret">🇩🇪 Germany - Returns</option>
           <option value="sg">🇸🇬 Singapore</option>
         </select>
       </div>
@@ -1524,11 +1524,16 @@
       </div>
       <div class="total-row"><span class="total-label">Total Estimated Cost</span><span class="total-value" id="r-total">—</span></div>
       <div class="transit-badge" id="r-transit">🕐 Transit time: —</div>
-      <div id="r-footnote" style="display:none;margin-top:12px;background:rgba(37,99,235,0.05);border:1px solid rgba(37,99,235,0.15);border-radius:8px;padding:10px 14px;font-size:11px;color:var(--muted);line-height:1.6;font-family:'DM Mono',monospace;">* Returns from Switzerland and Norway are imported into the Firstbase Germany warehouse and processed through the EU warehouse lifecycle (reuse, storage, or ITAD). Only export/import service fees apply; standard return action fees do not apply.</div>
       <div style="margin-top:16px">
         <button id="create-quote-btn" onclick="generateQuotePDF()" style="width:100%;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:14px 20px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:0.03em;transition:background 0.2s;display:flex;align-items:center;justify-content:center;gap:8px;" onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='var(--accent)'">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 2h6l3 3v9a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M10 2v3h3M6 8h4M6 10.5h4M6 5.5h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
           Create Quote PDF
+        </button>
+      </div>
+      <div style="margin-top:10px">
+        <button id="save-quote-btn" onclick="saveQuote()" style="width:100%;background:var(--surface);color:var(--accent);border:1px solid var(--accent);border-radius:10px;padding:14px 20px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:0.03em;transition:background 0.2s,color 0.2s;display:flex;align-items:center;justify-content:center;gap:8px;" onmouseover="this.style.background='var(--accent)';this.style.color='#fff'" onmouseout="this.style.background='var(--surface)';this.style.color='var(--accent)'">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 2.5A1.5 1.5 0 014.5 1h5.586a1.5 1.5 0 011.06.44l1.415 1.414a1.5 1.5 0 01.439 1.06V13.5A1.5 1.5 0 0111.5 15h-7A1.5 1.5 0 013 13.5v-11z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M5.5 1v3h4V1M5 9.5h6v5H5v-5z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+          <span id="save-quote-btn-label">Save Quote</span>
         </button>
       </div>
       <div class="note" style="margin-top:12px">Rates are estimates and may vary based on local taxes, customs clearance, brokerage fees, and contractor costs at time of shipment. Only new, unopened laptops in original packaging qualify.</div>
@@ -1544,6 +1549,20 @@
   </div>
 
   </div><!-- end tab-calculator -->
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- TAB: SAVED QUOTES                                           -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <div id="tab-saved-quotes" class="tab-panel">
+
+    <div class="repo2-controls">
+      <input type="text" id="sq-search" placeholder="Search warehouse, country, product…" oninput="renderSavedQuotes()" />
+      <span class="repo2-stats" id="sq-stats"></span>
+    </div>
+
+    <div id="sq-content"></div>
+
+  </div><!-- end tab-saved-quotes -->
 
   <!-- ══════════════════════════════════════════════════════════ -->
   <!-- TAB 2: SHIPMENT REPOSITORY (invoice style)                 -->
@@ -1725,7 +1744,6 @@
           <option value="">— Select warehouse —</option>
           <option value="us">🇺🇸 US (Salt Lake City)</option>
           <option value="de">🇩🇪 Germany (EU)</option>
-          <option value="de_ret">🇩🇪 Germany - Returns</option>
           <option value="sg">🇸🇬 Singapore</option>
         </select>
       </div>
@@ -2098,7 +2116,6 @@
             <option value="">— Select origin —</option>
             <option value="us">🇺🇸 US (Salt Lake City)</option>
             <option value="de">🇩🇪 Germany (EU)</option>
-            <option value="de_ret">🇩🇪 Germany - Returns</option>
             <option value="sg">🇸🇬 Singapore</option>
           </select>
         </div>
@@ -2146,10 +2163,11 @@
 <script>
 // ── TAB SWITCHER ────────────────────────────────────────────────
 function switchTab(name) {
-  const tabs = ['calculator','repository','products','quote'];
+  const tabs = ['calculator','saved-quotes','repository','products','quote'];
   document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', tabs[i] === name));
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
+  if (name === 'saved-quotes') initSavedQuotesTab();
   if (name === 'repository') initRepo();
   if (name === 'products') renderProductTable();
   if (name === 'quote') onQuoteWarehouseChange();
@@ -2197,8 +2215,9 @@ async function gasPost(payload) {
 
 // ── RATE CALCULATOR ─────────────────────────────────────────────
 // Loaded from Sheet on init — keyed by warehouse then country
-let rates = { us: { currency:'USD', countries:{} }, de: { currency:'EUR', countries:{} }, de_ret: { currency:'EUR', countries:{} }, sg: { currency:'USD', countries:{} } };
-const WH_MAP = { US:'us', DE:'de', 'DE-RETURNS':'de_ret', SG:'sg' };
+let rates = { us: { currency:'USD', countries:{} }, de: { currency:'EUR', countries:{} }, sg: { currency:'USD', countries:{} } };
+let lastCalc = null; // most recent successful calculate() result, used by Save Quote
+const WH_MAP = { US:'us', DE:'de', SG:'sg' };
 
 // Rates sourced directly from Notion: https://firstbase.notion.site/Firstbase-Export-Rates-0a9fb6c1dca94a48b36da78fa7316bf5
 // Last Updated: March 12, 2026
@@ -2269,13 +2288,6 @@ async function loadRates() {
         'Switzerland': { duty: 0.09, ior: 50, fixed: 625, transit: '15-18 business days' },
         'Norway':      { duty: 0.25, ior: 50, fixed: 825, transit: '15-18 business days' }
       }
-    },
-    de_ret: {
-      currency: 'EUR',
-      countries: {
-        'Switzerland': { duty: 0.19, ior: 50, fixed: 800, transit: '15-18 business days from pickup' },
-        'Norway':      { duty: 0.19, ior: 50, fixed: 900, transit: '15-18 business days from pickup' }
-      }
     }
   };
   onWarehouseChange();
@@ -2285,13 +2297,18 @@ async function loadRates() {
 const shipmentsGid        = 1146493596; // Shipment Repository
 const productsGid         = 862516178;  // Product Info
 const customCountriesGid  = 1917705446; // Custom Countries
+const savedQuotesGid      = 847208865;  // Saved Quotes
 
 // ── CUSTOM COUNTRIES (loaded from the "Custom Countries" Sheet tab) ──
-// Columns: Country, Warehouse (US/DE/SG/DE-RETURNS), Local Duties (%),
+// Columns: Country, Warehouse (US/DE/SG), Local Duties (%),
 //          IOR Min Fee (USD), Fixed Cost (USD), Transit Time
 // Overlays/extends the hardcoded `rates` table above, so this sheet is the
 // live source of truth for destination countries once loaded. New countries
 // are added manually in the sheet (no in-app "Add Country" flow).
+// Note: any legacy "DE-RETURNS" rows are folded into the regular "DE" bucket
+// (Germany - Returns is no longer a separate origin warehouse), so if the
+// sheet still has old Returns-specific rows for the same country, whichever
+// row appears last wins — worth removing those old rows from the sheet.
 async function loadCustomCountries() {
   try {
     const text = await fetch(csvUrl(customCountriesGid)).then(r => r.text());
@@ -2307,20 +2324,10 @@ async function loadCustomCountries() {
       const fixed   = parseFloat(row['Fixed Cost (USD)']);
       if (isNaN(duty) || isNaN(ior) || isNaN(fixed)) return;
 
-      let whKey;
-      if (whRaw === 'DE-RETURNS') {
-        whKey = 'de_ret';
-      } else if (whRaw === 'DE') {
-        // The sheet doesn't always mark returns rows as "DE-RETURNS" explicitly —
-        // fall back to detecting "pickup" in the transit time, which is unique
-        // to the Germany-Returns lifecycle (see loadRates() de_ret transit text).
-        whKey = transit.toLowerCase().includes('pickup') ? 'de_ret' : 'de';
-      } else {
-        whKey = WH_MAP[whRaw] || whRaw.toLowerCase();
-      }
+      const whKey = whRaw === 'DE-RETURNS' ? 'de' : (WH_MAP[whRaw] || whRaw.toLowerCase());
 
       if (!rates[whKey]) {
-        rates[whKey] = { currency: (whKey === 'de' || whKey === 'de_ret') ? 'EUR' : 'USD', countries: {} };
+        rates[whKey] = { currency: whKey === 'de' ? 'EUR' : 'USD', countries: {} };
       }
       rates[whKey].countries[country] = { duty, ior, fixed, transit };
     });
@@ -2357,66 +2364,190 @@ function calculate() {
         val=parseFloat(document.getElementById('value').value),
         qty=Math.max(1, parseInt(document.getElementById('quantity').value)||1);
   const content=document.getElementById('breakdown-content'), empty=document.getElementById('empty-state');
-  if (!wh||!country||isNaN(val)||val<=0){content.style.display='none';empty.style.display='block';return;}
+  if (!wh||!country||isNaN(val)||val<=0){content.style.display='none';empty.style.display='block';lastCalc=null;updateSaveQuoteBtn();return;}
 
   let r = (rates[wh] && rates[wh].countries[country]) ? rates[wh].countries[country] : null;
-  if(!r){content.style.display='none';empty.style.display='block';return;}
+  if(!r){content.style.display='none';empty.style.display='block';lastCalc=null;updateSaveQuoteBtn();return;}
 
   const currency = (rates[wh] && rates[wh].currency) ? rates[wh].currency : 'USD';
   const totalVal = val * qty;
-  const isReturns = wh === 'de_ret';
 
   // Show $10k popup if total declared value exceeds $9999
   if (totalVal > 9999) {
     document.getElementById('tenk-modal').style.display='flex';
     content.style.display='none'; empty.style.display='block';
+    lastCalc=null;updateSaveQuoteBtn();
     return;
   }
 
-  let duty, ior, fixed, subtotal, handling, total;
+  const duty     = totalVal * r.duty;
+  const ior      = r.ior * qty;
+  const fixed    = r.fixed * qty;
+  const subtotal = duty + ior + fixed;
+  const handling = subtotal * 0.08;
+  const total    = subtotal + handling;
 
-  if (isReturns) {
-    // Germany - Returns formula: no qty scaling on fixed or IOR
-    duty     = totalVal * r.duty;          // 19% of total declared value
-    ior      = r.ior;                      // flat €50, no qty scaling
-    fixed    = r.fixed;                    // per shipment, no qty scaling
-    subtotal = duty + ior + fixed;
-    handling = subtotal * 0.08;
-    total    = subtotal + handling;
-  } else {
-    duty    = totalVal * r.duty;
-    ior     = r.ior * qty;
-    fixed   = r.fixed * qty;
-    subtotal = duty + ior + fixed;
-    handling = subtotal * 0.08;
-    total    = subtotal + handling;
-  }
-
-  // Update duty row label
   const dutyLabelEl = document.getElementById('r-duty-label');
-  if (dutyLabelEl) dutyLabelEl.textContent = isReturns ? 'German Import VAT ' : 'Local Duties & Tax ';
+  if (dutyLabelEl) dutyLabelEl.textContent = 'Local Duties & Tax ';
 
   document.getElementById('r-value').textContent=fmtVal(val,currency);
   document.getElementById('r-qty').textContent=qty.toLocaleString();
   document.getElementById('r-total-value').textContent=fmtVal(totalVal,currency);
   document.getElementById('r-duty-pct').textContent='('+(r.duty*100).toFixed(0)+'% of total declared value)';
   document.getElementById('r-duty').textContent=fmt(duty,currency);
-  document.getElementById('r-ior-note').textContent=(!isReturns && qty>1)?'(×'+qty+')':'';
+  document.getElementById('r-ior-note').textContent=(qty>1)?'(×'+qty+')':'';
   document.getElementById('r-ior').textContent=fmt(ior,currency);
-  document.getElementById('r-fixed-note').textContent=(!isReturns && qty>1)?'(×'+qty+')':'';
+  document.getElementById('r-fixed-note').textContent=(qty>1)?'(×'+qty+')':'';
   document.getElementById('r-fixed').textContent=fmt(fixed,currency);
   document.getElementById('r-subtotal').textContent=fmt(subtotal,currency);
   document.getElementById('r-handling').textContent=fmt(handling,currency);
   document.getElementById('r-total').textContent=fmt(total,currency);
   document.getElementById('r-transit').textContent='🕐 Transit time: '+r.transit;
 
-  // Footnote for Germany - Returns
-  const footnoteEl = document.getElementById('r-footnote');
-  if (footnoteEl) {
-    footnoteEl.style.display = isReturns ? 'block' : 'none';
-  }
+  lastCalc = { wh, country, val, qty, totalVal, duty, ior, fixed, subtotal, handling, total, currency, transit: r.transit };
+  updateSaveQuoteBtn();
 
   content.style.display='block'; empty.style.display='none';
+}
+
+// ── SAVE QUOTE (Rate Calculator tab -> "Saved Quotes" sheet tab) ──
+let savedQuotes = [];        // loaded from the Saved Quotes sheet tab
+let savedQuotesLoaded = false;
+
+const CALC_WH_LABELS = { us: 'US (Salt Lake City)', de: 'Germany (EU)', sg: 'Singapore' };
+
+function updateSaveQuoteBtn() {
+  const label = document.getElementById('save-quote-btn-label');
+  const btn   = document.getElementById('save-quote-btn');
+  if (!label || !btn) return;
+  label.textContent = 'Save Quote';
+  btn.disabled = false;
+}
+
+async function saveQuote() {
+  if (!lastCalc) return;
+  const btn   = document.getElementById('save-quote-btn');
+  const label = document.getElementById('save-quote-btn-label');
+  const productInput = document.getElementById('calc-product-input');
+  const product = productInput ? productInput.value.trim() : '';
+
+  const quote = {
+    warehouse:  CALC_WH_LABELS[lastCalc.wh] || lastCalc.wh,
+    country:    lastCalc.country,
+    product:    product,
+    value:      lastCalc.val,
+    quantity:   lastCalc.qty,
+    totalValue: lastCalc.totalVal,
+    duty:       lastCalc.duty,
+    ior:        lastCalc.ior,
+    fixed:      lastCalc.fixed,
+    subtotal:   lastCalc.subtotal,
+    handling:   lastCalc.handling,
+    total:      lastCalc.total,
+    currency:   lastCalc.currency,
+    transit:    lastCalc.transit
+  };
+
+  btn.disabled = true;
+  label.textContent = 'Saving…';
+
+  const res = await gasPost({ action: 'saveQuote', quote: quote });
+
+  btn.disabled = false;
+
+  if (res && res.success) {
+    label.textContent = '✓ Saved!';
+    savedQuotesLoaded = false; // force a refresh next time the Saved Quotes tab is opened
+    setTimeout(() => { label.textContent = 'Save Quote'; }, 2200);
+  } else {
+    label.textContent = 'Save Quote';
+    alert('Save failed: ' + (res && res.error ? res.error : 'check Apps Script URL'));
+  }
+}
+
+// ── SAVED QUOTES TAB (reads back the "Saved Quotes" sheet tab) ──
+async function initSavedQuotesTab() {
+  if (savedQuotesLoaded) { renderSavedQuotes(); return; }
+  document.getElementById('sq-content').innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-family:\'DM Mono\',monospace;font-size:13px;">Loading saved quotes…</div>';
+  await loadSavedQuotesData();
+  savedQuotesLoaded = true;
+  renderSavedQuotes();
+}
+
+async function loadSavedQuotesData() {
+  try {
+    const text = await fetch(csvUrl(savedQuotesGid)).then(r => r.text());
+    const rows = parseCSV(text);
+    savedQuotes = rows.map(r => ({
+      timestamp:  r['Timestamp'] || '',
+      warehouse:  r['Warehouse'] || '',
+      country:    r['Country'] || '',
+      product:    r['Product'] || '',
+      value:      r['Declared Value/Unit'] || '',
+      quantity:   r['Quantity'] || '',
+      totalValue: r['Total Declared Value'] || '',
+      duty:       r['Duty'] || '',
+      ior:        r['IOR Fee'] || '',
+      fixed:      r['Fixed Cost'] || '',
+      subtotal:   r['Subtotal'] || '',
+      handling:   r['Handling'] || '',
+      total:      r['Total'] || '',
+      currency:   r['Currency'] || '',
+      transit:    r['Transit'] || ''
+    })).filter(q => q.timestamp || q.country);
+  } catch(e) { console.error('loadSavedQuotesData error:', e); }
+}
+
+function fmtSavedQuoteAmt(n, currency) {
+  const num = parseFloat(n);
+  if (isNaN(num)) return n || '—';
+  const s = currency === 'EUR' ? '€' : '$';
+  return s + num.toLocaleString('en-US', {minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+function renderSavedQuotes() {
+  const searchEl = document.getElementById('sq-search');
+  const search = (searchEl ? searchEl.value : '').toLowerCase();
+
+  let filtered = savedQuotes.filter(q => {
+    if (!search) return true;
+    const hay = [q.warehouse, q.country, q.product].join(' ').toLowerCase();
+    return hay.includes(search);
+  });
+
+  // Sheet rows are appended in save order (oldest first) — show newest first
+  filtered = filtered.slice().reverse();
+
+  document.getElementById('sq-stats').textContent = filtered.length + ' of ' + savedQuotes.length + ' saved quotes';
+
+  if (!filtered.length) {
+    document.getElementById('sq-content').innerHTML = '<div class="empty-state" style="padding:48px;text-align:center;color:var(--muted)">No saved quotes match your filters.</div>';
+    return;
+  }
+
+  const rowsHtml = filtered.map(q => `
+    <tr>
+      <td>${q.timestamp}</td>
+      <td>${q.warehouse}</td>
+      <td><span class="country-tag">${q.country}</span></td>
+      <td class="item-name">${q.product || '—'}</td>
+      <td style="text-align:center">${q.quantity}</td>
+      <td style="text-align:right">${fmtSavedQuoteAmt(q.totalValue, q.currency)}</td>
+      <td style="text-align:right;color:var(--accent);font-weight:600;">${fmtSavedQuoteAmt(q.total, q.currency)}</td>
+      <td>${q.transit}</td>
+    </tr>`).join('');
+
+  document.getElementById('sq-content').innerHTML = `
+    <table class="items-table">
+      <thead><tr>
+        <th>Saved</th><th>Warehouse</th><th>Country</th><th>Product</th>
+        <th style="text-align:center">Qty</th>
+        <th style="text-align:right">Total Declared Value</th>
+        <th style="text-align:right">Total Cost</th>
+        <th>Transit</th>
+      </tr></thead>
+      <tbody>${rowsHtml}</tbody>
+    </table>`;
 }
 
 // ── CALCULATOR PRODUCT DROPDOWN (sourced from Product Info catalog) ──
@@ -3623,12 +3754,11 @@ function generateQuotePDF() {
   const val     = parseFloat(document.getElementById('value').value);
   const qty     = Math.max(1, parseInt(document.getElementById('quantity').value)||1);
 
-  const warehouseLabels = { us:'US (Salt Lake City)', de:'Germany (EU)', de_ret:'Germany - Returns', sg:'Singapore' };
+  const warehouseLabels = { us:'US (Salt Lake City)', de:'Germany (EU)', sg:'Singapore' };
   const whLabel = warehouseLabels[wh] || wh;
   const currency = (rates[wh] && rates[wh].currency) ? rates[wh].currency : 'USD';
   const currSymbol = currency === 'EUR' ? '\u20ac' : '$';
   const currLabel  = currency === 'EUR' ? 'EUR' : 'USD';
-  const isReturns  = wh === 'de_ret';
 
   const get  = id => document.getElementById(id).textContent;
   const date = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
@@ -3705,9 +3835,9 @@ function generateQuotePDF() {
   y += 4;
 
   // ── Cost table ───────────────────────────────────────────────
-  const dutyLabel = (isReturns ? 'German Import VAT ' : 'Local Duties & Tax ') + get('r-duty-pct');
-  const iorLabel  = 'IOR Minimum Fee' + (qty > 1 && !isReturns ? ' (\xd7' + qty + ')' : '');
-  const fixedLabel= 'Fixed Cost - Freight & Brokerage' + (qty > 1 && !isReturns ? ' (\xd7' + qty + ')' : '');
+  const dutyLabel = 'Local Duties & Tax ' + get('r-duty-pct');
+  const iorLabel  = 'IOR Minimum Fee' + (qty > 1 ? ' (\xd7' + qty + ')' : '');
+  const fixedLabel= 'Fixed Cost - Freight & Brokerage' + (qty > 1 ? ' (\xd7' + qty + ')' : '');
 
   doc.autoTable({
     startY: y,
@@ -3772,17 +3902,6 @@ function generateQuotePDF() {
 
   y += 8;
 
-  // ── Footnote for Germany - Returns (plain text, no bubble) ───
-  if (isReturns) {
-    const footnoteText = '* Returns from Switzerland and Norway are imported into the Firstbase Germany warehouse and processed through the EU warehouse lifecycle (reuse, storage, or ITAD). Only export/import service fees apply; standard return action fees do not apply.';
-    doc.setFont('helvetica', 'italic');
-    doc.setFontSize(7.5);
-    doc.setTextColor(100, 116, 139);
-    const fnLines = doc.splitTextToSize(footnoteText, contentW);
-    doc.text(fnLines, margin, y);
-    y += fnLines.length * 4 + 4;
-  }
-
   // ── Disclaimer ───────────────────────────────────────────────
   doc.setDrawColor(226, 232, 240);
   doc.line(margin, y, margin + contentW, y);
@@ -3822,10 +3941,9 @@ function fmtQuoteVal(amt, cur) {
 }
 
 const CQ_WAREHOUSE_LABELS = {
-  us:     'US (Salt Lake City)',
-  de:     'Germany (EU)',
-  de_ret: 'Germany - Returns',
-  sg:     'Singapore'
+  us: 'US (Salt Lake City)',
+  de: 'Germany (EU)',
+  sg: 'Singapore'
 };
 
 function onQuoteWarehouseChange() {
@@ -4215,10 +4333,9 @@ function generateQuoteEmail() {
   const destVal   = document.getElementById('qr-destination').value;
 
   const originLabels = {
-    us:     'Firstbase US Warehouse (Salt Lake City, Utah)',
-    de:     'Firstbase Germany Warehouse (EU)',
-    de_ret: 'Firstbase Germany Warehouse – Returns',
-    sg:     'Firstbase Singapore Warehouse'
+    us: 'Firstbase US Warehouse (Salt Lake City, Utah)',
+    de: 'Firstbase Germany Warehouse (EU)',
+    sg: 'Firstbase Singapore Warehouse'
   };
   const originLabel = originLabels[originVal] || (originVal || '[Origin warehouse – please select above]');
   const destLabel   = destVal || '[Destination country – please select above]';
