@@ -5,13 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Firstbase Export Rate Calculator</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-<!-- ── CLERK SSO (v4 — full UI bundle) ──────────────────────────── -->
-<script>const CLERK_PUBLISHABLE_KEY = 'pk_test_dW5pcXVlLXJhY2Nvb24tMzQuY2xlcmsuYWNjb3VudHMuZGV2JA';</script>
-<script
-  data-clerk-publishable-key="pk_test_dW5pcXVlLXJhY2Nvb24tMzQuY2xlcmsuYWNjb3VudHMuZGV2JA"
-  src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@4/dist/clerk.browser.js"
-  crossorigin="anonymous"></script>
-<!-- ──────────────────────────────────────────────────────────────── -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <style>
@@ -1211,99 +1204,6 @@
     .item-row-header { grid-template-columns: 100px 1fr 50px 50px 80px 28px; }
   }
 
-  /* ── CLERK AUTH GATE ──────────────────────────────────────────── */
-  #clerk-gate {
-    position: fixed;
-    inset: 0;
-    z-index: 9999;
-    background: var(--bg);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 32px;
-    padding: 24px;
-  }
-  #clerk-gate::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image:
-      linear-gradient(rgba(37,99,235,0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(37,99,235,0.04) 1px, transparent 1px);
-    background-size: 48px 48px;
-    pointer-events: none;
-  }
-  .clerk-gate-header {
-    text-align: center;
-    position: relative;
-    z-index: 1;
-  }
-  .clerk-gate-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(37,99,235,0.08);
-    border: 1px solid rgba(37,99,235,0.2);
-    border-radius: 100px;
-    padding: 6px 14px;
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    color: var(--accent);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    margin-bottom: 16px;
-  }
-  .clerk-gate-badge::before {
-    content: '';
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--accent);
-    box-shadow: 0 0 8px rgba(37,99,235,0.4);
-    animation: pulse 2s ease infinite;
-  }
-  .clerk-gate-title {
-    font-family: 'Syne', sans-serif;
-    font-size: clamp(22px, 3vw, 32px);
-    font-weight: 800;
-    color: var(--text);
-    line-height: 1.2;
-    margin-bottom: 6px;
-  }
-  .clerk-gate-title span { color: var(--accent); }
-  .clerk-gate-sub {
-    font-size: 14px;
-    color: var(--muted);
-    font-family: 'Plus Jakarta Sans', sans-serif;
-  }
-  #clerk-sign-in-mount {
-    position: relative;
-    z-index: 1;
-    width: 100%;
-    max-width: 420px;
-  }
-  #clerk-loading {
-    position: relative;
-    z-index: 1;
-    font-family: 'DM Mono', monospace;
-    font-size: 12px;
-    color: var(--muted);
-    letter-spacing: 0.06em;
-  }
-  #clerk-user-bar {
-    display: none;
-    position: fixed;
-    top: 16px;
-    right: 20px;
-    z-index: 100;
-    align-items: center;
-    gap: 10px;
-  }
-  #clerk-user-bar.visible { display: flex; }
-  #clerk-user-mount { line-height: 0; }
-  /* ──────────────────────────────────────────────────────────────── */
-
   /* ══════════════════════════════════════════════════════════ */
   /* REPOSITORY v2 — INVOICE-STYLE RENDERING                     */
   /* ══════════════════════════════════════════════════════════ */
@@ -1532,27 +1432,10 @@
 </head>
 <body>
 
-<!-- ── CLERK AUTH GATE (shown until signed in) ──────────────────── -->
-<div id="clerk-gate">
-  <div class="clerk-gate-header">
-    <div class="clerk-gate-badge">Firstbase · Export Services</div>
-    <div class="clerk-gate-title">Export <span>Dashboard</span></div>
-    <div class="clerk-gate-sub">Sign in with your Firstbase Google account to continue.</div>
-  </div>
-  <div id="clerk-sign-in-mount"></div>
-  <div id="clerk-loading">Initialising secure login…</div>
-</div>
-
-<!-- ── SIGNED-IN USER BAR (top-right) ──────────────────────────── -->
-<div id="clerk-user-bar">
-  <div id="clerk-user-mount"></div>
-</div>
-<!-- ──────────────────────────────────────────────────────────────── -->
-
 <div class="glow glow-1"></div>
 <div class="glow glow-2"></div>
 
-<div class="container" id="main-app" style="display:none">
+<div class="container" id="main-app">
 
   <header>
     <div class="logo-badge">Firstbase · Export Services</div>
@@ -1588,11 +1471,24 @@
       </div>
       <div class="field">
         <label>Destination Country</label>
-        <div style="display:flex;gap:8px;align-items:center;">
-          <select id="country" onchange="calculate()" style="flex:1">
-            <option value="">— Select origin first —</option>
-          </select>
-          <button onclick="openAddCountry()" title="Add new destination country" style="flex-shrink:0;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:0 14px;height:42px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;transition:background 0.2s;" onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='var(--accent)'">+ Add Country</button>
+        <select id="country" onchange="calculate()">
+          <option value="">— Select origin first —</option>
+        </select>
+      </div>
+      <div class="field full">
+        <label>Product <span class="opt">(optional — auto-fills declared value)</span></label>
+        <div class="prod-dropdown-wrap" id="pdw-calc-product">
+          <input type="text" class="prod-input" id="calc-product-input" placeholder="Select product…" readonly
+            onclick="toggleCalcProdDropdown()" />
+          <span class="prod-input-arrow">▾</span>
+          <div class="prod-dropdown-menu" id="pdm-calc-product">
+            <div class="prod-search-wrap">
+              <input type="text" class="prod-search-input" placeholder="Search products…"
+                oninput="filterCalcProdOptions(this.value)"
+                onkeydown="calcProdKeyNav(event)" />
+            </div>
+            <div class="prod-list" id="pdl-calc-product"></div>
+          </div>
         </div>
       </div>
       <div class="field">
@@ -1835,12 +1731,9 @@
       </div>
       <div class="field">
         <label>Destination Country</label>
-        <div style="display:flex;gap:8px;align-items:center;">
-          <select id="cq-country" onchange="calculateQuote()" style="flex:1">
-            <option value="">— Select origin first —</option>
-          </select>
-          <button onclick="openAddCountry()" title="Add new destination country" style="flex-shrink:0;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:0 14px;height:42px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;transition:background 0.2s;" onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='var(--accent)'">+ Add Country</button>
-        </div>
+        <select id="cq-country" onchange="calculateQuote()">
+          <option value="">— Select origin first —</option>
+        </select>
       </div>
       <div class="field">
         <label>Product Type</label>
@@ -2249,50 +2142,6 @@
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════════════════════ -->
-<!-- ADD COUNTRY MODAL                                          -->
-<!-- ══════════════════════════════════════════════════════════ -->
-<div id="add-country-modal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.6);z-index:9999;align-items:center;justify-content:center;">
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:32px;width:100%;max-width:460px;box-shadow:0 24px 64px rgba(0,0,0,0.2);position:relative;">
-    <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--text);margin-bottom:6px;">Add Destination Country</div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:24px;">This country will be saved and available in the calculator dropdown across sessions.</div>
-
-    <div style="display:grid;gap:16px;">
-      <div>
-        <label style="display:block;font-size:10px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Country Name <span style="color:var(--warn)">*</span></label>
-        <input type="text" id="ac-name" placeholder="e.g. Singapore" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:10px 12px;outline:none;transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'" />
-      </div>
-      <div>
-        <label style="display:block;font-size:10px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Local Duties & Tax (% of CIF Value) <span style="color:var(--warn)">*</span></label>
-        <div style="display:flex;align-items:center;background:var(--surface2);border:1px solid var(--border);border-radius:8px;overflow:hidden;transition:border-color 0.2s;" id="ac-duty-wrap">
-          <input type="number" id="ac-duty" placeholder="e.g. 15" min="0" step="0.1" style="flex:1;background:transparent;border:none;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:10px 12px;outline:none;" onfocus="document.getElementById('ac-duty-wrap').style.borderColor='var(--accent)'" onblur="document.getElementById('ac-duty-wrap').style.borderColor='var(--border)'" />
-          <span style="padding:0 12px;color:var(--muted);font-family:'DM Mono',monospace;font-size:13px;">%</span>
-        </div>
-      </div>
-      <div>
-        <label style="display:block;font-size:10px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">IOR Minimum Fee (USD) <span style="color:var(--warn)">*</span></label>
-        <div style="display:flex;align-items:center;background:var(--surface2);border:1px solid var(--border);border-radius:8px;overflow:hidden;transition:border-color 0.2s;" id="ac-ior-wrap">
-          <span style="padding:0 12px;color:var(--muted);font-family:'DM Mono',monospace;font-size:13px;">$</span>
-          <input type="number" id="ac-ior" placeholder="e.g. 500" min="0" step="0.01" style="flex:1;background:transparent;border:none;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:10px 12px 10px 0;outline:none;" onfocus="document.getElementById('ac-ior-wrap').style.borderColor='var(--accent)'" onblur="document.getElementById('ac-ior-wrap').style.borderColor='var(--border)'" />
-        </div>
-      </div>
-      <div>
-        <label style="display:block;font-size:10px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Fixed Cost Per Shipment (USD) <span style="color:var(--warn)">*</span></label>
-        <div style="display:flex;align-items:center;background:var(--surface2);border:1px solid var(--border);border-radius:8px;overflow:hidden;transition:border-color 0.2s;" id="ac-fixed-wrap">
-          <span style="padding:0 12px;color:var(--muted);font-family:'DM Mono',monospace;font-size:13px;">$</span>
-          <input type="number" id="ac-fixed" placeholder="e.g. 1200" min="0" step="0.01" style="flex:1;background:transparent;border:none;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:10px 12px 10px 0;outline:none;" onfocus="document.getElementById('ac-fixed-wrap').style.borderColor='var(--accent)'" onblur="document.getElementById('ac-fixed-wrap').style.borderColor='var(--border)'" />
-        </div>
-      </div>
-    </div>
-
-    <div id="ac-error" style="display:none;margin-top:14px;padding:10px 14px;background:rgba(234,88,12,0.08);border:1px solid rgba(234,88,12,0.3);border-radius:8px;font-size:12px;color:var(--warn);"></div>
-
-    <div style="display:flex;gap:10px;margin-top:24px;justify-content:flex-end;">
-      <button onclick="closeAddCountry()" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 20px;font-family:'Syne',sans-serif;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;">Cancel</button>
-      <button onclick="submitAddCountry()" style="background:var(--accent);border:none;border-radius:8px;padding:10px 20px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#fff;cursor:pointer;transition:background 0.2s;" onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='var(--accent)'">Save Country</button>
-    </div>
-  </div>
-</div>
 
 <script>
 // ── TAB SWITCHER ────────────────────────────────────────────────
@@ -2437,6 +2286,47 @@ const shipmentsGid        = 1146493596; // Shipment Repository
 const productsGid         = 862516178;  // Product Info
 const customCountriesGid  = 1917705446; // Custom Countries
 
+// ── CUSTOM COUNTRIES (loaded from the "Custom Countries" Sheet tab) ──
+// Columns: Country, Warehouse (US/DE/SG/DE-RETURNS), Local Duties (%),
+//          IOR Min Fee (USD), Fixed Cost (USD), Transit Time
+// Overlays/extends the hardcoded `rates` table above, so this sheet is the
+// live source of truth for destination countries once loaded. New countries
+// are added manually in the sheet (no in-app "Add Country" flow).
+async function loadCustomCountries() {
+  try {
+    const text = await fetch(csvUrl(customCountriesGid)).then(r => r.text());
+    const rows = parseCSV(text);
+    rows.forEach(row => {
+      const country = (row['Country'] || '').trim();
+      if (!country) return;
+
+      const whRaw   = (row['Warehouse'] || '').trim().toUpperCase();
+      const transit = (row['Transit Time'] || '').trim() || '~20 business days';
+      const duty    = parseFloat(row['Local Duties (%)']);
+      const ior     = parseFloat(row['IOR Min Fee (USD)']);
+      const fixed   = parseFloat(row['Fixed Cost (USD)']);
+      if (isNaN(duty) || isNaN(ior) || isNaN(fixed)) return;
+
+      let whKey;
+      if (whRaw === 'DE-RETURNS') {
+        whKey = 'de_ret';
+      } else if (whRaw === 'DE') {
+        // The sheet doesn't always mark returns rows as "DE-RETURNS" explicitly —
+        // fall back to detecting "pickup" in the transit time, which is unique
+        // to the Germany-Returns lifecycle (see loadRates() de_ret transit text).
+        whKey = transit.toLowerCase().includes('pickup') ? 'de_ret' : 'de';
+      } else {
+        whKey = WH_MAP[whRaw] || whRaw.toLowerCase();
+      }
+
+      if (!rates[whKey]) {
+        rates[whKey] = { currency: (whKey === 'de' || whKey === 'de_ret') ? 'EUR' : 'USD', countries: {} };
+      }
+      rates[whKey].countries[country] = { duty, ior, fixed, transit };
+    });
+  } catch(e) { console.error('loadCustomCountries error:', e); }
+}
+
 function onWarehouseChange() {
   const wh = document.getElementById('warehouse').value;
   const cs = document.getElementById('country');
@@ -2527,6 +2417,105 @@ function calculate() {
   }
 
   content.style.display='block'; empty.style.display='none';
+}
+
+// ── CALCULATOR PRODUCT DROPDOWN (sourced from Product Info catalog) ──
+function toggleCalcProdDropdown() {
+  const wrap = document.getElementById('pdw-calc-product');
+  const menu = document.getElementById('pdm-calc-product');
+  const isOpen = wrap.classList.contains('open');
+
+  // Close all other open dropdowns
+  document.querySelectorAll('.prod-dropdown-wrap.open').forEach(w => {
+    if (w.id !== 'pdw-calc-product') w.classList.remove('open');
+  });
+
+  if (isOpen) { wrap.classList.remove('open'); return; }
+
+  // Position the menu relative to the input
+  const inputEl = wrap.querySelector('.prod-input');
+  const rect = inputEl.getBoundingClientRect();
+  const spaceBelow = window.innerHeight - rect.bottom;
+  const menuHeight = 320;
+
+  menu.style.width = Math.max(rect.width, 380) + 'px';
+  menu.style.left = rect.left + 'px';
+
+  if (spaceBelow >= menuHeight || spaceBelow > 200) {
+    menu.style.top = (rect.bottom + 4) + 'px';
+    menu.style.bottom = 'auto';
+  } else {
+    menu.style.bottom = (window.innerHeight - rect.top + 4) + 'px';
+    menu.style.top = 'auto';
+  }
+
+  wrap.classList.add('open');
+
+  setTimeout(() => {
+    const si = wrap.querySelector('.prod-search-input');
+    if (si) { si.value = ''; si.focus(); filterCalcProdOptions(''); }
+  }, 50);
+}
+
+function renderCalcProdOptions(query) {
+  const list = document.getElementById('pdl-calc-product');
+  if (!list) return;
+  const q = (query || '').toLowerCase();
+  const all = getAllProducts();
+  const filtered = q ? all.filter(p =>
+    p.name.toLowerCase().includes(q) || (p.category||'').toLowerCase().includes(q)
+  ) : all;
+
+  if (!filtered.length) {
+    list.innerHTML = `<div class="prod-no-results">No products found</div>`;
+    return;
+  }
+
+  const currentVal = document.getElementById('calc-product-input').value;
+
+  list.innerHTML = filtered.map(p => `
+    <div class="prod-option${p.name === currentVal ? ' selected' : ''}"
+      data-name="${p.name.replace(/"/g,'&quot;')}"
+      data-value="${p.value}"
+      onclick="selectCalcProdOption(this)">
+      <span class="prod-option-name">${p.name}</span>
+      <span class="prod-option-meta">
+        ${p.category ? `<span class="prod-option-cat">${p.category}</span>` : ''}
+        <span class="prod-option-weight">${p.weight} lbs</span>
+      </span>
+    </div>`).join('');
+}
+
+function filterCalcProdOptions(query) {
+  renderCalcProdOptions(query);
+}
+
+function selectCalcProdOption(optEl) {
+  const name  = optEl.dataset.name;
+  const value = optEl.dataset.value;
+  document.getElementById('calc-product-input').value = name;
+  if (value) document.getElementById('value').value = parseFloat(value) || '';
+  document.getElementById('pdw-calc-product').classList.remove('open');
+  calculate();
+}
+
+function calcProdKeyNav(e) {
+  const list = document.getElementById('pdl-calc-product');
+  if (!list) return;
+  const opts = list.querySelectorAll('.prod-option');
+  let hi = [...opts].findIndex(o => o.classList.contains('highlighted'));
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    if (hi < opts.length - 1) { if (hi >= 0) opts[hi].classList.remove('highlighted'); opts[hi+1].classList.add('highlighted'); opts[hi+1].scrollIntoView({block:'nearest'}); }
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    if (hi > 0) { opts[hi].classList.remove('highlighted'); opts[hi-1].classList.add('highlighted'); opts[hi-1].scrollIntoView({block:'nearest'}); }
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    if (hi >= 0) selectCalcProdOption(opts[hi]);
+  } else if (e.key === 'Escape') {
+    document.getElementById('pdw-calc-product')?.classList.remove('open');
+  }
 }
 
 // ── SHIPMENT REPOSITORY DATA ─────────────────────────────────────
@@ -3301,6 +3290,8 @@ function refreshAllDataLists() {
     const si = document.querySelector('#pdw-' + row.id + ' .prod-search-input');
     renderProdOptions(row.id, si ? si.value : '');
   });
+  const calcSi = document.querySelector('#pdw-calc-product .prod-search-input');
+  if (calcSi) renderCalcProdOptions(calcSi.value);
 }
 
 function onProductSelect() {} // no-op, handled by selectProdOption now
@@ -3442,8 +3433,12 @@ function renderProductTable() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-  // Load all data from Google Sheets in parallel
-  await Promise.all([ loadRates(), loadProducts() ]);
+  // Seed the hardcoded rate table first, then overlay the live Custom
+  // Countries sheet (must run after loadRates(), since loadRates()
+  // reassigns `rates` wholesale and would wipe out the overlay otherwise).
+  await loadRates();
+  await Promise.all([ loadCustomCountries(), loadProducts() ]);
+  onWarehouseChange(); // refresh destination dropdown with any custom countries
   renderProductTable();
 });
 
@@ -4130,76 +4125,8 @@ function generateCreateQuotePDF() {
   doc.save(filename);
 }
 
-// ── CUSTOM COUNTRIES (Google Sheets via Apps Script) ─────────────
-function openAddCountry() {
-  document.getElementById('ac-name').value='';
-  document.getElementById('ac-duty').value='';
-  document.getElementById('ac-ior').value='';
-  document.getElementById('ac-fixed').value='';
-  document.getElementById('ac-error').style.display='none';
-  const modal = document.getElementById('add-country-modal');
-  modal.style.display='flex';
-  setTimeout(()=>document.getElementById('ac-name').focus(), 50);
-}
-
-function closeAddCountry() {
-  document.getElementById('add-country-modal').style.display='none';
-}
-
-async function submitAddCountry() {
-  const name     = document.getElementById('ac-name').value.trim();
-  const dutyRaw  = document.getElementById('ac-duty').value.trim();
-  const iorRaw   = document.getElementById('ac-ior').value.trim();
-  const fixedRaw = document.getElementById('ac-fixed').value.trim();
-
-  if (!name)                         { showAcError('Country name is required.'); return; }
-  if (dutyRaw===''||isNaN(+dutyRaw)) { showAcError('Local Duties & Tax is required and must be a number.'); return; }
-  if (iorRaw===''||isNaN(+iorRaw))   { showAcError('IOR Minimum Fee is required and must be a number.'); return; }
-  if (fixedRaw===''||isNaN(+fixedRaw)){ showAcError('Fixed Cost Per Shipment is required and must be a number.'); return; }
-
-  // Check duplicate against current rate data
-  const wh = document.getElementById('warehouse').value || 'us';
-  if (rates[wh] && rates[wh].countries[name]) {
-    showAcError(`"${name}" already exists in the country list.`);
-    return;
-  }
-
-  const duty  = parseFloat(dutyRaw) / 100;
-  const ior   = parseFloat(iorRaw);
-  const fixed = parseFloat(fixedRaw);
-
-  const btn = document.querySelector('#add-country-modal button[onclick="submitAddCountry()"]');
-  if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
-
-  const res = await gasPost({ action:'addCountry', name, duty, ior, fixed, transit:'~20 business days' });
-
-  if (btn) { btn.disabled = false; btn.textContent = 'Save Country'; }
-
-  if (res && res.success) {
-    closeAddCountry();
-    // Add to local rates immediately so UI updates without reload
-    Object.keys(rates).forEach(w => {
-      rates[w].countries[name] = { duty, ior, fixed, transit:'~20 business days' };
-    });
-    onWarehouseChange();
-    const cs = document.getElementById('country');
-    cs.value = name;
-    calculate();
-  } else {
-    showAcError('Save failed: ' + (res && res.error ? res.error : 'unknown error'));
-  }
-}
-
-function showAcError(msg) {
-  const el = document.getElementById('ac-error');
-  el.textContent = msg;
-  el.style.display = 'block';
-}
-
 // Close modal on backdrop click
 document.addEventListener('click', (e) => {
-  const modal = document.getElementById('add-country-modal');
-  if (modal && e.target === modal) closeAddCountry();
   const tenkModal = document.getElementById('tenk-modal');
   if (tenkModal && e.target === tenkModal) tenkModal.style.display='none';
   const qrModal = document.getElementById('qr-modal');
@@ -4636,90 +4563,5 @@ function copyRfqEmail() {
   }, 2200);
 }
 </script>
-
-<!-- ── CLERK SSO INITIALISATION ─────────────────────────────────── -->
-<script>
-(async function () {
-  const gate      = document.getElementById('clerk-gate');
-  const loadingEl = document.getElementById('clerk-loading');
-  const signInEl  = document.getElementById('clerk-sign-in-mount');
-  const userEl    = document.getElementById('clerk-user-mount');
-  const userBar   = document.getElementById('clerk-user-bar');
-  const mainApp   = document.getElementById('main-app');
-
-  // ── 1. Allowed email domains ─────────────────────────────────────
-  const ALLOWED_DOMAINS = ['firstbase.com', 'appdirect.com'];
-
-  function getEmailDomain(user) {
-    const email = (user && user.primaryEmailAddress && user.primaryEmailAddress.emailAddress) || '';
-    return email.split('@')[1] || '';
-  }
-  function isDomainAllowed(user) {
-    return ALLOWED_DOMAINS.includes(getEmailDomain(user));
-  }
-  function showDomainError(user) {
-    signInEl.innerHTML = '';
-    const domain = getEmailDomain(user);
-    loadingEl.style.cssText = 'display:block;max-width:400px;text-align:center;line-height:1.7;font-family:Plus Jakarta Sans,sans-serif;font-size:13px';
-    loadingEl.innerHTML =
-      '⛔ <strong>Access denied.</strong><br>' +
-      '<em>' + domain + '</em> accounts cannot access this dashboard.<br>' +
-      'Use a <strong>@firstbase.com</strong> or <strong>@appdirect.com</strong> Google account.<br><br>' +
-      '<button onclick="window.__clerk.signOut().then(()=>location.reload())" ' +
-      'style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:10px 22px;' +
-      'font-family:Syne,sans-serif;font-size:13px;font-weight:700;cursor:pointer">Sign out &amp; try again</button>';
-  }
-  function showApp(clerk) {
-    gate.style.display = 'none';
-    mainApp.style.display = '';
-    userBar.classList.add('visible');
-    clerk.mountUserButton(userEl, {
-      appearance: { elements: { userButtonAvatarBox: { width: '32px', height: '32px' } } }
-    });
-  }
-
-  // ── 2. Boot Clerk v4 (window.Clerk is a pre-init instance on CDN) ─
-  try {
-    const clerk = window.Clerk;
-    window.__clerk = clerk;
-    await clerk.load();
-
-    // ── 3. Already signed in? ──────────────────────────────────────
-    if (clerk.user) {
-      isDomainAllowed(clerk.user) ? showApp(clerk) : showDomainError(clerk.user);
-      return;
-    }
-
-    // ── 4. Show sign-in widget ─────────────────────────────────────
-    loadingEl.style.display = 'none';
-    clerk.mountSignIn(signInEl, {
-      appearance: {
-        elements: {
-          rootBox: { width: '100%' },
-          card:    { boxShadow: '0 4px 24px rgba(0,0,0,0.08)', borderRadius: '14px' }
-        }
-      }
-    });
-
-    // ── 5. Listen for sign-in, enforce domain ─────────────────────
-    clerk.addListener(function (resources) {
-      const user = resources.user;
-      if (!user) return;
-      isDomainAllowed(user) ? showApp(clerk) : showDomainError(user);
-    });
-
-  } catch (err) {
-    console.error('Clerk init error:', err);
-    loadingEl.style.cssText = 'display:block;max-width:400px;text-align:center;line-height:1.7;font-family:Plus Jakarta Sans,sans-serif;font-size:13px';
-    loadingEl.innerHTML =
-      '⚠️ Sign-in failed to load.<br>' +
-      '<button onclick="location.reload()" ' +
-      'style="margin-top:12px;background:var(--accent);color:#fff;border:none;border-radius:8px;' +
-      'padding:10px 22px;font-family:Syne,sans-serif;font-size:13px;font-weight:700;cursor:pointer">' +
-      'Retry</button>';
-  }
-}());
-</script>
-<!-- ──────────────────────────────────────────────────────────────── -->
 </body>
 </html>
