@@ -2252,6 +2252,10 @@
     </div>
     <div class="modal-body">
       <div class="modal-field">
+        <label>Customer Name <span style="color:var(--warn)">*</span></label>
+        <input type="text" id="approve-customer-name" placeholder="e.g. Acme Corp" onkeydown="if(event.key==='Enter'){event.preventDefault();confirmApproveQuote();}" />
+      </div>
+      <div class="modal-field">
         <label>Order ID <span class="opt">(optional — included in the Ops notification email)</span></label>
         <input type="text" id="approve-order-id" placeholder="e.g. 4eff0cb0-b8eb-4fb7-ab25-c9c4d46c6b55" onkeydown="if(event.key==='Enter'){event.preventDefault();confirmApproveQuote();}" />
       </div>
@@ -2634,7 +2638,8 @@ async function loadSavedQuotesData() {
       currency:   r['Currency'] || '',
       transit:    r['Transit'] || '',
       approved:   (r['Approved'] || '').trim().toLowerCase() === 'yes',
-      orderId:    r['Order ID'] || ''
+      orderId:    r['Order ID'] || '',
+      customerName: r['Customer Name'] || ''
     })).filter(q => q.timestamp || q.country);
   } catch(e) { console.error('loadSavedQuotesData error:', e); }
 }
@@ -2652,7 +2657,7 @@ function renderSavedQuotes() {
 
   let filtered = savedQuotes.filter(q => {
     if (!search) return true;
-    const hay = [q.warehouse, q.country, q.product].join(' ').toLowerCase();
+    const hay = [q.warehouse, q.country, q.product, q.customerName].join(' ').toLowerCase();
     return hay.includes(search);
   });
 
@@ -2669,6 +2674,7 @@ function renderSavedQuotes() {
   const rowsHtml = filtered.map(q => `
     <tr${q.approved ? ' class="sq-approved-row"' : ''}>
       <td>${q.timestamp}${q.approved ? '<span class="sq-approved-badge">✓ Approved</span>' : ''}</td>
+      <td>${q.customerName || '—'}</td>
       <td>${q.warehouse}</td>
       <td><span class="country-tag">${q.country}</span></td>
       <td class="item-name">${q.product || '—'}</td>
@@ -2686,7 +2692,7 @@ function renderSavedQuotes() {
   document.getElementById('sq-content').innerHTML = `
     <table class="items-table">
       <thead><tr>
-        <th>Saved</th><th>Warehouse</th><th>Country</th><th>Product</th>
+        <th>Saved</th><th>Customer Name</th><th>Warehouse</th><th>Country</th><th>Product</th>
         <th style="text-align:center">Qty</th>
         <th style="text-align:right">Total Declared Value</th>
         <th style="text-align:right">Total Cost</th>
@@ -2712,12 +2718,14 @@ function openApproveQuoteModal(btnEl, timestamp) {
   if (!row || row.approved) return;
 
   pendingApproveQuote = { btnEl, timestamp };
+  const nameInput = document.getElementById('approve-customer-name');
+  nameInput.value = '';
   const input = document.getElementById('approve-order-id');
   input.value = '';
   const errEl = document.getElementById('approve-modal-error');
   errEl.style.display = 'none';
   document.getElementById('approve-quote-overlay').classList.add('open');
-  setTimeout(() => input.focus(), 50);
+  setTimeout(() => nameInput.focus(), 50);
 }
 
 function closeApproveQuoteModal(e) {
@@ -2729,22 +2737,30 @@ function closeApproveQuoteModal(e) {
 async function confirmApproveQuote() {
   if (!pendingApproveQuote) return;
   const { btnEl, timestamp } = pendingApproveQuote;
+  const customerName = (document.getElementById('approve-customer-name').value || '').trim();
   const orderId = (document.getElementById('approve-order-id').value || '').trim();
   const errEl = document.getElementById('approve-modal-error');
   errEl.style.display = 'none';
+
+  if (!customerName) {
+    errEl.textContent = 'Customer Name is required.';
+    errEl.style.display = 'block';
+    document.getElementById('approve-customer-name').focus();
+    return;
+  }
 
   const submitBtn = document.getElementById('approve-modal-submit');
   submitBtn.disabled = true;
   submitBtn.textContent = 'Approving…';
 
-  const res = await gasPost({ action: 'approveQuote', timestamp: timestamp, orderId: orderId });
+  const res = await gasPost({ action: 'approveQuote', timestamp: timestamp, orderId: orderId, customerName: customerName });
 
   submitBtn.disabled = false;
   submitBtn.textContent = 'Approve Quote';
 
   if (res && res.success) {
     const row = savedQuotes.find(q => q.timestamp === timestamp);
-    if (row) { row.approved = true; row.orderId = orderId; }
+    if (row) { row.approved = true; row.orderId = orderId; row.customerName = customerName; }
     pendingApproveQuote = null;
     document.getElementById('approve-quote-overlay').classList.remove('open');
     renderSavedQuotes();
