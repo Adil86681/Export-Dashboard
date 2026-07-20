@@ -1552,6 +1552,15 @@
     </div>
   </div>
 
+  <div class="card" style="margin-top:20px">
+    <div class="card-title">How This Works</div>
+    <ol class="howto-list">
+      <li>Clicking <strong>Save Quote</strong> saves your quotation in the <strong>Saved Quotes</strong> tab.</li>
+      <li>If the saved quote is approved by the customer, go to the <strong>Saved Quotes</strong> tab and click <strong>Approve</strong> on that quote.</li>
+      <li>Approving the quote automatically sends a notification to the Ops team to process the export order.</li>
+    </ol>
+  </div>
+
   <div class="results-card" id="results">
     <div class="card-title">Cost Breakdown</div>
     <div class="empty-state" id="empty-state">
@@ -1590,18 +1599,9 @@
   <div class="card exclusions-section" style="margin-top:20px">
     <div class="card-title">Excluded Regions</div>
     <div class="exclusions-grid">
-      <span class="exclusion-tag">Albania</span><span class="exclusion-tag">Algeria</span><span class="exclusion-tag">Armenia</span><span class="exclusion-tag">Bangladesh</span><span class="exclusion-tag">China</span><span class="exclusion-tag">Cuba</span><span class="exclusion-tag">Iran</span><span class="exclusion-tag">Kosovo</span><span class="exclusion-tag">Kyrgyzstan</span><span class="exclusion-tag">Lebanon</span><span class="exclusion-tag">Moldova</span><span class="exclusion-tag">North Korea</span><span class="exclusion-tag">Russia</span><span class="exclusion-tag">Sudan</span><span class="exclusion-tag">Syria</span><span class="exclusion-tag">Ukraine</span><span class="exclusion-tag">Venezuela</span><span class="exclusion-tag">Vietnam</span>
+      <span class="exclusion-tag">Albania</span><span class="exclusion-tag">Algeria</span><span class="exclusion-tag">Armenia</span><span class="exclusion-tag">Bangladesh</span><span class="exclusion-tag">China</span><span class="exclusion-tag">Cuba</span><span class="exclusion-tag">Iran</span><span class="exclusion-tag">Kosovo</span><span class="exclusion-tag">Kyrgyzstan</span><span class="exclusion-tag">Lebanon</span><span class="exclusion-tag">Moldova</span><span class="exclusion-tag">North Korea</span><span class="exclusion-tag">Russia</span><span class="exclusion-tag">Sudan</span><span class="exclusion-tag">Syria</span><span class="exclusion-tag">Ukraine</span><span class="exclusion-tag">Venezuela</span>
     </div>
     <p style="margin-top:12px;font-size:12px;color:var(--muted)">This list is non-exhaustive. Additional regions may not be supported.</p>
-  </div>
-
-  <div class="card" style="margin-top:20px">
-    <div class="card-title">How This Works</div>
-    <ol class="howto-list">
-      <li>Clicking <strong>Save Quote</strong> saves your quotation in the <strong>Saved Quotes</strong> tab.</li>
-      <li>If the saved quote is approved by the customer, go to the <strong>Saved Quotes</strong> tab and click <strong>Approve</strong> on that quote.</li>
-      <li>Approving the quote automatically sends a notification to the Ops team to process the export order.</li>
-    </ol>
   </div>
 
   </div><!-- end tab-calculator -->
@@ -2214,7 +2214,7 @@
     <div class="modal-body">
       <div class="modal-field">
         <label>Order ID <span class="opt">(optional — included in the Ops notification email)</span></label>
-        <input type="text" id="approve-order-id" placeholder="e.g. FB-10234" onkeydown="if(event.key==='Enter'){event.preventDefault();confirmApproveQuote();}" />
+        <input type="text" id="approve-order-id" placeholder="e.g. 4eff0cb0-b8eb-4fb7-ab25-c9c4d46c6b55" onkeydown="if(event.key==='Enter'){event.preventDefault();confirmApproveQuote();}" />
       </div>
       <div id="approve-modal-error" class="modal-error" style="display:none"></div>
       <div class="modal-actions">
