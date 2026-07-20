@@ -2395,7 +2395,7 @@ function clerkRenderAuthState() {
 async function initClerkAuth() {
   clerkShowScreen('clerk-loading');
 
-  if (!CLERK_PUBLISHABLE_KEY || CLERK_PUBLISHABLE_KEY === 'YOUR_CLERK_PUBLISHABLE_KEY') {
+  if (!CLERK_PUBLISHABLE_KEY || CLERK_PUBLISHABLE_KEY === 'pk_test_dXNhYmxlLWxhYnJhZG9yLTc2LmNsZXJrLmFjY291bnRzLmRldiQ') {
     clerkShowScreen('clerk-setup-needed');
     return;
   }
