@@ -2351,7 +2351,8 @@ function clerkEmailAllowed(user) {
 }
 
 async function clerkSignOutAndReset() {
-  try { await window.Clerk.signOut(); } catch (e) { console.error('Clerk signOut failed:', e); }
+  try { await window.Clerk.signOut({ redirectUrl: window.location.pathname }); }
+  catch (e) { console.error('Clerk signOut failed:', e); }
   // Clerk's addListener callback (registered in initClerkAuth) re-renders the
   // sign-in screen automatically once the sign-out completes.
 }
@@ -2367,6 +2368,12 @@ function clerkLoadScriptOnce(src) {
 
 function clerkRenderAuthState() {
   const user = window.Clerk.user;
+  // Clerk's redirect props default to "/", which is wrong when this file is
+  // hosted at a subpath (e.g. a GitHub Pages project page like
+  // /Export-Dashboard/) — that default bounces users to the bare domain root,
+  // which has nothing deployed there. Pinning these to the page's own path
+  // makes it self-correct wherever this file ends up hosted.
+  const herePath = window.location.pathname;
 
   if (user) {
     if (!clerkEmailAllowed(user)) {
@@ -2378,7 +2385,7 @@ function clerkRenderAuthState() {
     clerkShowScreen('app');
     const btnDiv = document.getElementById('clerk-user-button');
     if (btnDiv && !btnDiv.dataset.mounted) {
-      window.Clerk.mountUserButton(btnDiv);
+      window.Clerk.mountUserButton(btnDiv, { afterSignOutUrl: herePath });
       btnDiv.dataset.mounted = '1';
     }
     return;
@@ -2387,7 +2394,7 @@ function clerkRenderAuthState() {
   clerkShowScreen('clerk-sign-in-wrap');
   const signInDiv = document.getElementById('clerk-sign-in');
   if (signInDiv && !signInDiv.dataset.mounted) {
-    window.Clerk.mountSignIn(signInDiv);
+    window.Clerk.mountSignIn(signInDiv, { fallbackRedirectUrl: herePath });
     signInDiv.dataset.mounted = '1';
   }
 }
