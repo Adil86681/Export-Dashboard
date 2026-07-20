@@ -658,6 +658,42 @@
   .items-table .total-row td { color: var(--accent); font-weight: 600; }
   .items-table .item-name { color: var(--text); font-size: 11px; max-width: 320px; }
 
+  /* ── Saved Quotes: Approve / Delete actions ── */
+  .sq-action-btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 9px;
+    border-radius: 5px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 0.15s;
+    background: var(--surface2);
+    line-height: 1.6;
+    margin-right: 6px;
+    white-space: nowrap;
+  }
+  .sq-approve-btn { color: #047857; border-color: rgba(4,120,87,0.3); }
+  .sq-approve-btn:hover { background: rgba(4,120,87,0.08); border-color: #047857; }
+  .sq-approve-btn:disabled { opacity: 0.55; cursor: default; }
+  .sq-delete-btn { color: var(--muted); }
+  .sq-delete-btn:hover { color: var(--warn); border-color: rgba(234,88,12,0.4); background: rgba(234,88,12,0.08); }
+  .sq-delete-btn:disabled { opacity: 0.55; cursor: default; }
+  tr.sq-approved-row td { background: #ecfdf5; }
+  .sq-approved-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: #047857;
+    background: #d1fae5;
+    border: 1px solid #6ee7b7;
+    border-radius: 4px;
+    padding: 2px 7px;
+    margin-left: 6px;
+    white-space: nowrap;
+  }
+
   /* ── Add Shipment Button ── */
   .add-shipment-btn {
     margin-left: auto;
@@ -2493,7 +2529,8 @@ async function loadSavedQuotesData() {
       handling:   r['Handling'] || '',
       total:      r['Total'] || '',
       currency:   r['Currency'] || '',
-      transit:    r['Transit'] || ''
+      transit:    r['Transit'] || '',
+      approved:   (r['Approved'] || '').trim().toLowerCase() === 'yes'
     })).filter(q => q.timestamp || q.country);
   } catch(e) { console.error('loadSavedQuotesData error:', e); }
 }
@@ -2526,8 +2563,8 @@ function renderSavedQuotes() {
   }
 
   const rowsHtml = filtered.map(q => `
-    <tr>
-      <td>${q.timestamp}</td>
+    <tr${q.approved ? ' class="sq-approved-row"' : ''}>
+      <td>${q.timestamp}${q.approved ? '<span class="sq-approved-badge">✓ Approved</span>' : ''}</td>
       <td>${q.warehouse}</td>
       <td><span class="country-tag">${q.country}</span></td>
       <td class="item-name">${q.product || '—'}</td>
@@ -2535,6 +2572,10 @@ function renderSavedQuotes() {
       <td style="text-align:right">${fmtSavedQuoteAmt(q.totalValue, q.currency)}</td>
       <td style="text-align:right;color:var(--accent);font-weight:600;">${fmtSavedQuoteAmt(q.total, q.currency)}</td>
       <td>${q.transit}</td>
+      <td style="white-space:nowrap;">
+        <button class="sq-action-btn sq-approve-btn" onclick="approveQuote(this,'${escSqId(q.timestamp)}')" ${q.approved ? 'disabled' : ''} title="Approve this quote">${q.approved ? '✓ Approved' : '✓ Approve'}</button>
+        <button class="sq-action-btn sq-delete-btn" onclick="deleteSavedQuote(this,'${escSqId(q.timestamp)}')" title="Delete this quote">🗑 Delete</button>
+      </td>
     </tr>`).join('');
 
   document.getElementById('sq-content').innerHTML = `
@@ -2545,9 +2586,60 @@ function renderSavedQuotes() {
         <th style="text-align:right">Total Declared Value</th>
         <th style="text-align:right">Total Cost</th>
         <th>Transit</th>
+        <th>Actions</th>
       </tr></thead>
       <tbody>${rowsHtml}</tbody>
     </table>`;
+}
+
+// Escapes a saved-quote timestamp for safe embedding inside an inline onclick="...('...')" handler
+function escSqId(str) {
+  return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+}
+
+// ── APPROVE / DELETE a saved quote (Saved Quotes tab) ──
+// Both actions are identified by the quote's Timestamp value (its unique key in
+// the Saved Quotes sheet tab), and both round-trip through the same Apps Script
+// Web App used elsewhere in this file (gasPost / APPS_SCRIPT_URL).
+async function approveQuote(btnEl, timestamp) {
+  const row = savedQuotes.find(q => q.timestamp === timestamp);
+  if (!row || row.approved) return;
+
+  const td = btnEl.closest('td');
+  const btns = td ? td.querySelectorAll('button') : [btnEl];
+  btns.forEach(b => b.disabled = true);
+  btnEl.textContent = 'Approving…';
+
+  const res = await gasPost({ action: 'approveQuote', timestamp: timestamp });
+
+  if (res && res.success) {
+    row.approved = true;
+    renderSavedQuotes();
+  } else {
+    btns.forEach(b => b.disabled = false);
+    btnEl.textContent = '✓ Approve';
+    alert('Approve failed: ' + (res && res.error ? res.error : 'check Apps Script URL'));
+  }
+}
+
+async function deleteSavedQuote(btnEl, timestamp) {
+  if (!confirm('Delete this saved quote? This removes it from the app and the Google Sheet, and cannot be undone.')) return;
+
+  const td = btnEl.closest('td');
+  const btns = td ? td.querySelectorAll('button') : [btnEl];
+  btns.forEach(b => b.disabled = true);
+  btnEl.textContent = 'Deleting…';
+
+  const res = await gasPost({ action: 'deleteQuote', timestamp: timestamp });
+
+  if (res && res.success) {
+    savedQuotes = savedQuotes.filter(q => q.timestamp !== timestamp);
+    renderSavedQuotes();
+  } else {
+    btns.forEach(b => b.disabled = false);
+    btnEl.textContent = '🗑 Delete';
+    alert('Delete failed: ' + (res && res.error ? res.error : 'check Apps Script URL'));
+  }
 }
 
 // ── CALCULATOR PRODUCT DROPDOWN (sourced from Product Info catalog) ──
