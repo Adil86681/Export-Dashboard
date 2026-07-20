@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Firstbase Export Rate Calculator</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-qZvrmS2ekKPF2mSznTQsxqPgnpkI4DNTlrdUmTzrDgektczlKNRRhy5X5AAOnx5S09ydFYWWNSfcEqDTTHgtNA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js" integrity="sha512-2/YdOMV+YNpanLCF5MdQwaoFRVbTmrJ4u4EpqS/USXAQNUDgI5uwYi6J98WVtJKcfe1AbgerygzDFToxAlOGEQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <style>
   :root {
     --bg: #f1f5f9;
@@ -2323,6 +2323,15 @@ function csvUrl(gid) {
   return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}`;
 }
 
+// Wraps fetch() with a timeout so a hung backend/network call can't hang the UI
+// forever. Callers keep their existing try/catch and error-handling paths —
+// a timeout just surfaces as a normal fetch rejection (AbortError).
+function fetchWithTimeout(url, options = {}, timeoutMs = 15000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 function parseCSV(text) {
   const lines = text.trim().split('\n');
   const headers = lines[0].split(',').map(h => h.replace(/^"|"$/g, '').trim());
@@ -2347,10 +2356,10 @@ async function gasPost(payload) {
     return { success: false, error: 'Not configured' };
   }
   try {
-    const r = await fetch(APPS_SCRIPT_URL, {
+    const r = await fetchWithTimeout(APPS_SCRIPT_URL, {
       method: 'POST', redirect: 'follow',
       body: JSON.stringify(payload)
-    });
+    }, 15000);
     return await r.json();
   } catch(e) { return { success: false, error: e.toString() }; }
 }
@@ -2453,7 +2462,7 @@ const savedQuotesGid      = 847208865;  // Saved Quotes
 // row appears last wins — worth removing those old rows from the sheet.
 async function loadCustomCountries() {
   try {
-    const text = await fetch(csvUrl(customCountriesGid)).then(r => r.text());
+    const text = await fetchWithTimeout(csvUrl(customCountriesGid)).then(r => r.text());
     const rows = parseCSV(text);
     rows.forEach(row => {
       const country = (row['Country'] || '').trim();
@@ -2619,7 +2628,7 @@ async function initSavedQuotesTab() {
 
 async function loadSavedQuotesData() {
   try {
-    const text = await fetch(csvUrl(savedQuotesGid)).then(r => r.text());
+    const text = await fetchWithTimeout(csvUrl(savedQuotesGid)).then(r => r.text());
     const rows = parseCSV(text);
     savedQuotes = rows.map(r => ({
       timestamp:  r['Timestamp'] || '',
@@ -2673,16 +2682,16 @@ function renderSavedQuotes() {
 
   const rowsHtml = filtered.map(q => `
     <tr${q.approved ? ' class="sq-approved-row"' : ''}>
-      <td>${q.timestamp}${q.approved ? '<span class="sq-approved-badge">✓ Approved</span>' : ''}</td>
-      <td>${q.customerName || '—'}</td>
-      <td>${q.warehouse}</td>
-      <td><span class="country-tag">${q.country}</span></td>
-      <td class="item-name">${q.product || '—'}</td>
-      <td style="text-align:center">${q.quantity}</td>
+      <td>${escapeHtml(q.timestamp)}${q.approved ? '<span class="sq-approved-badge">✓ Approved</span>' : ''}</td>
+      <td>${escapeHtml(q.customerName) || '—'}</td>
+      <td>${escapeHtml(q.warehouse)}</td>
+      <td><span class="country-tag">${escapeHtml(q.country)}</span></td>
+      <td class="item-name">${escapeHtml(q.product) || '—'}</td>
+      <td style="text-align:center">${escapeHtml(q.quantity)}</td>
       <td style="text-align:right">${fmtSavedQuoteAmt(q.totalValue, q.currency)}</td>
       <td style="text-align:right;color:var(--accent);font-weight:600;">${fmtSavedQuoteAmt(q.total, q.currency)}</td>
-      <td>${q.transit}</td>
-      <td>${q.orderId || '—'}</td>
+      <td>${escapeHtml(q.transit)}</td>
+      <td>${escapeHtml(q.orderId) || '—'}</td>
       <td style="white-space:nowrap;">
         <button class="sq-action-btn sq-approve-btn" onclick="openApproveQuoteModal(this,'${escSqId(q.timestamp)}')" ${q.approved ? 'disabled' : ''} title="Approve this quote">${q.approved ? '✓ Approved' : '✓ Approve'}</button>
         <button class="sq-action-btn sq-delete-btn" onclick="deleteSavedQuote(this,'${escSqId(q.timestamp)}')" title="Delete this quote">🗑 Delete</button>
@@ -2849,9 +2858,9 @@ function renderCalcProdOptions(query) {
       data-name="${p.name.replace(/"/g,'&quot;')}"
       data-value="${p.value}"
       onclick="selectCalcProdOption(this)">
-      <span class="prod-option-name">${p.name}</span>
+      <span class="prod-option-name">${escapeHtml(p.name)}</span>
       <span class="prod-option-meta">
-        ${p.category ? `<span class="prod-option-cat">${p.category}</span>` : ''}
+        ${p.category ? `<span class="prod-option-cat">${escapeHtml(p.category)}</span>` : ''}
         <span class="prod-option-weight">${p.weight} lbs</span>
       </span>
     </div>`).join('');
@@ -2896,7 +2905,7 @@ let repoLoaded = false;
 
 async function loadShipments() {
   try {
-    const text = await fetch(csvUrl(shipmentsGid)).then(r => r.text());
+    const text = await fetchWithTimeout(csvUrl(shipmentsGid)).then(r => r.text());
     const rows = parseCSV(text);
     shipments = rows.map((r, idx) => ({
       month:     r['Month'] || '',
@@ -3449,7 +3458,7 @@ async function loadProducts() {
     // Product data lives in a separate sheet
     const PRODUCT_SHEET_ID = '1C1SP8Txx-DyoJOJzdsePyIAEEZRP-_h6qPL1GkYtoaM';
     const productCsvUrl = `https://docs.google.com/spreadsheets/d/${PRODUCT_SHEET_ID}/export?format=csv&gid=0`;
-    const text = await fetch(productCsvUrl).then(r => r.text());
+    const text = await fetchWithTimeout(productCsvUrl).then(r => r.text());
     // This sheet has a 2-row header: row1 = group labels, row2 = column names
     // Columns (0-indexed): 0=Item Name, 1=Category, 2=Country of Origin, 3=Value,
     //   4=L(in), 5=W(in), 6=H(in), 7=Weight(lbs), 8=L(cm), 9=W(cm), 10=H(cm), 11=Weight(kgs), 12=US Tariff Code
@@ -3608,9 +3617,9 @@ function renderProdOptions(rowId, query) {
       data-weight="${p.weight}"
       data-value="${p.value}"
       onclick="selectProdOption('${rowId}', this)">
-      <span class="prod-option-name">${p.name}</span>
+      <span class="prod-option-name">${escapeHtml(p.name)}</span>
       <span class="prod-option-meta">
-        ${p.category ? `<span class="prod-option-cat">${p.category}</span>` : ''}
+        ${p.category ? `<span class="prod-option-cat">${escapeHtml(p.category)}</span>` : ''}
         <span class="prod-option-weight">${p.weight} lbs</span>
       </span>
     </div>`).join('');
@@ -3775,11 +3784,11 @@ function renderProductTable() {
       <td style="padding:0 4px 0 12px;width:36px;text-align:center;">
         <input type="checkbox" class="product-row-cb" ${isChecked?'checked':''} onclick="toggleProductSelection('${safeNameAttr}', this.checked)" />
       </td>
-      <td style="padding:9px 10px;font-family:'DM Mono',monospace;font-size:11px;color:var(--text);max-width:260px;">${p.name}</td>
+      <td style="padding:9px 10px;font-family:'DM Mono',monospace;font-size:11px;color:var(--text);max-width:260px;">${escapeHtml(p.name)}</td>
       <td style="padding:9px 10px;">
-        <span style="display:inline-block;background:rgba(124,58,237,0.08);color:#7c3aed;border:1px solid rgba(124,58,237,0.15);border-radius:4px;padding:2px 7px;font-family:'DM Mono',monospace;font-size:10px;">${p.category||'—'}</span>
+        <span style="display:inline-block;background:rgba(124,58,237,0.08);color:#7c3aed;border:1px solid rgba(124,58,237,0.15);border-radius:4px;padding:2px 7px;font-family:'DM Mono',monospace;font-size:10px;">${escapeHtml(p.category)||'—'}</span>
       </td>
-      <td style="padding:9px 10px;font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);">${p.origin||'—'}</td>
+      <td style="padding:9px 10px;font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);">${escapeHtml(p.origin)||'—'}</td>
       <td style="padding:9px 10px;font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);text-align:right;">${p.value?'$'+parseFloat(p.value).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'—'}</td>
       <td style="${dc}">${p.lIn||'—'}</td>
       <td style="${dc}">${p.wIn||'—'}</td>
@@ -3789,7 +3798,7 @@ function renderProductTable() {
       <td style="${dc}">${p.wCm||'—'}</td>
       <td style="${dc}">${p.hCm||'—'}</td>
       <td style="${dc}">${p.weightKg||'—'}</td>
-      <td style="padding:9px 10px;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);text-align:center;">${p.tariffCode||'—'}</td>
+      <td style="padding:9px 10px;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);text-align:center;">${escapeHtml(p.tariffCode)||'—'}</td>
       <td style="padding:9px 10px;text-align:center;">
         ${p.custom
           ? `<span style="background:rgba(37,99,235,0.08);color:var(--accent);border:1px solid rgba(37,99,235,0.18);border-radius:4px;padding:2px 7px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.05em;">CUSTOM</span>`
