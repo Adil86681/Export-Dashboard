@@ -1508,10 +1508,40 @@
 </head>
 <body>
 
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- CLERK AUTH GATE                                             -->
+<!-- Client-side sign-in gate only. This does NOT secure the      -->
+<!-- Google Apps Script endpoint (APPS_SCRIPT_URL) below, which    -->
+<!-- still accepts requests directly regardless of this gate.     -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div id="clerk-loading" style="min-height:100vh;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:13px;color:#64748b;">Loading…</div>
+
+<div id="clerk-sign-in-wrap" style="display:none;min-height:100vh;align-items:center;justify-content:center;padding:48px 16px;">
+  <div id="clerk-sign-in"></div>
+</div>
+
+<div id="clerk-unauthorized" style="display:none;min-height:100vh;align-items:center;justify-content:center;padding:48px 16px;text-align:center;">
+  <div style="max-width:420px;">
+    <div style="font-size:40px;margin-bottom:16px;">🚫</div>
+    <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#0f172a;margin-bottom:10px;">Access Restricted</div>
+    <div style="font-size:13px;color:#64748b;line-height:1.6;margin-bottom:24px;">This tool is restricted to Firstbase / AppDirect accounts. Signed in as <span id="clerk-unauthorized-email" style="font-family:'DM Mono',monospace;"></span>.</div>
+    <button onclick="clerkSignOutAndReset()" style="background:#2563eb;color:#fff;border:none;border-radius:8px;padding:10px 24px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;">Sign Out</button>
+  </div>
+</div>
+
+<div id="clerk-setup-needed" style="display:none;min-height:100vh;align-items:center;justify-content:center;padding:48px 16px;text-align:center;">
+  <div style="max-width:480px;">
+    <div style="font-size:40px;margin-bottom:16px;">🔧</div>
+    <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#0f172a;margin-bottom:10px;">Clerk Sign-In Not Configured</div>
+    <div style="font-size:13px;color:#64748b;line-height:1.6;">Set <code>CLERK_PUBLISHABLE_KEY</code> near the top of the script (search for "CLERK SSO") to your Clerk Publishable Key — find it in the Clerk Dashboard under API keys → Quick Copy — then reload this page.</div>
+  </div>
+</div>
+
 <div class="glow glow-1"></div>
 <div class="glow glow-2"></div>
 
-<div class="container" id="main-app">
+<div class="container" id="main-app" style="display:none">
+  <div id="clerk-user-button" style="display:flex;justify-content:flex-end;margin-bottom:12px;"></div>
 
   <header>
     <div class="logo-badge">Firstbase · Export Services</div>
@@ -2280,6 +2310,128 @@
 
 
 <script>
+// ── CLERK SSO (client-side auth gate) ────────────────────────────
+// Set this to your Clerk Publishable Key: Clerk Dashboard → API keys → Quick Copy.
+// Publishable keys are meant to be public/embedded in client-side code (unlike
+// a Clerk *Secret* key, which must never appear here or anywhere client-side).
+//
+// IMPORTANT SCOPE NOTE: this gate only controls what the browser renders. It
+// does NOT secure APPS_SCRIPT_URL below — that endpoint still accepts direct
+// requests from anyone who has the URL, regardless of Clerk sign-in state.
+// Locking that down requires a server-side check inside the Apps Script itself
+// (e.g. verifying a Clerk session token on each request), which lives outside
+// this file.
+const CLERK_PUBLISHABLE_KEY = 'pk_test_dXNhYmxlLWxhYnJhZG9yLTc2LmNsZXJrLmFjY291bnRzLmRldiQ';
+
+// UX-only allowlist. The authoritative restriction must ALSO be configured in
+// Clerk Dashboard → Configure → Restrictions → Allowlist, since anyone could
+// bypass this client-side check by editing the page's JS in their own browser.
+const ALLOWED_EMAIL_DOMAINS = ['appdirect.com', 'firstbase.com'];
+
+function clerkShowScreen(name) {
+  ['clerk-loading', 'clerk-sign-in-wrap', 'clerk-unauthorized', 'clerk-setup-needed'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = (id === name) ? 'flex' : 'none';
+  });
+  const app = document.getElementById('main-app');
+  if (app) app.style.display = (name === 'app') ? '' : 'none';
+}
+
+function clerkUserEmail(user) {
+  if (!user) return '';
+  if (user.primaryEmailAddress && user.primaryEmailAddress.emailAddress) return user.primaryEmailAddress.emailAddress;
+  if (user.emailAddresses && user.emailAddresses[0]) return user.emailAddresses[0].emailAddress || '';
+  return '';
+}
+
+function clerkEmailAllowed(user) {
+  const email = clerkUserEmail(user);
+  const domain = (email.split('@')[1] || '').toLowerCase();
+  return ALLOWED_EMAIL_DOMAINS.includes(domain);
+}
+
+async function clerkSignOutAndReset() {
+  try { await window.Clerk.signOut(); } catch (e) { console.error('Clerk signOut failed:', e); }
+  // Clerk's addListener callback (registered in initClerkAuth) re-renders the
+  // sign-in screen automatically once the sign-out completes.
+}
+
+function clerkLoadScriptOnce(src) {
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = src; s.async = true; s.crossOrigin = 'anonymous';
+    s.onload = resolve; s.onerror = () => reject(new Error('Failed to load ' + src));
+    document.head.appendChild(s);
+  });
+}
+
+function clerkRenderAuthState() {
+  const user = window.Clerk.user;
+
+  if (user) {
+    if (!clerkEmailAllowed(user)) {
+      const emailEl = document.getElementById('clerk-unauthorized-email');
+      if (emailEl) emailEl.textContent = clerkUserEmail(user);
+      clerkShowScreen('clerk-unauthorized');
+      return;
+    }
+    clerkShowScreen('app');
+    const btnDiv = document.getElementById('clerk-user-button');
+    if (btnDiv && !btnDiv.dataset.mounted) {
+      window.Clerk.mountUserButton(btnDiv);
+      btnDiv.dataset.mounted = '1';
+    }
+    return;
+  }
+
+  clerkShowScreen('clerk-sign-in-wrap');
+  const signInDiv = document.getElementById('clerk-sign-in');
+  if (signInDiv && !signInDiv.dataset.mounted) {
+    window.Clerk.mountSignIn(signInDiv);
+    signInDiv.dataset.mounted = '1';
+  }
+}
+
+async function initClerkAuth() {
+  clerkShowScreen('clerk-loading');
+
+  if (!CLERK_PUBLISHABLE_KEY || CLERK_PUBLISHABLE_KEY === 'YOUR_CLERK_PUBLISHABLE_KEY') {
+    clerkShowScreen('clerk-setup-needed');
+    return;
+  }
+
+  try {
+    // The Frontend API domain is base64-encoded as the 3rd underscore-separated
+    // segment of the publishable key (documented Clerk pattern) — this lets us
+    // load the CDN bundles dynamically from a single config value.
+    const clerkDomain = atob(CLERK_PUBLISHABLE_KEY.split('_')[2]).slice(0, -1);
+
+    await clerkLoadScriptOnce(`https://${clerkDomain}/npm/@clerk/ui@1/dist/ui.browser.js`);
+
+    await new Promise((resolve, reject) => {
+      const clerkScript = document.createElement('script');
+      clerkScript.src = `https://${clerkDomain}/npm/@clerk/clerk-js@6/dist/clerk.browser.js`;
+      clerkScript.async = true;
+      clerkScript.crossOrigin = 'anonymous';
+      clerkScript.setAttribute('data-clerk-publishable-key', CLERK_PUBLISHABLE_KEY);
+      clerkScript.onload = resolve;
+      clerkScript.onerror = () => reject(new Error('Failed to load clerk.browser.js'));
+      document.head.appendChild(clerkScript);
+    });
+
+    await window.Clerk.load({ ui: { ClerkUI: window.__internal_ClerkUICtor } });
+  } catch (e) {
+    console.error('Clerk failed to load:', e);
+    clerkShowScreen('clerk-setup-needed');
+    return;
+  }
+
+  clerkRenderAuthState();
+  window.Clerk.addListener(() => clerkRenderAuthState());
+}
+
+window.addEventListener('load', initClerkAuth);
+
 // ── TAB SWITCHER ────────────────────────────────────────────────
 const TAB_GROUPS = {
   'firstbase-exports': ['calculator','saved-quotes'],
