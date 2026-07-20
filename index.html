@@ -2571,7 +2571,8 @@ async function loadSavedQuotesData() {
       total:      r['Total'] || '',
       currency:   r['Currency'] || '',
       transit:    r['Transit'] || '',
-      approved:   (r['Approved'] || '').trim().toLowerCase() === 'yes'
+      approved:   (r['Approved'] || '').trim().toLowerCase() === 'yes',
+      orderId:    r['Order ID'] || ''
     })).filter(q => q.timestamp || q.country);
   } catch(e) { console.error('loadSavedQuotesData error:', e); }
 }
@@ -2613,6 +2614,7 @@ function renderSavedQuotes() {
       <td style="text-align:right">${fmtSavedQuoteAmt(q.totalValue, q.currency)}</td>
       <td style="text-align:right;color:var(--accent);font-weight:600;">${fmtSavedQuoteAmt(q.total, q.currency)}</td>
       <td>${q.transit}</td>
+      <td>${q.orderId || '—'}</td>
       <td style="white-space:nowrap;">
         <button class="sq-action-btn sq-approve-btn" onclick="openApproveQuoteModal(this,'${escSqId(q.timestamp)}')" ${q.approved ? 'disabled' : ''} title="Approve this quote">${q.approved ? '✓ Approved' : '✓ Approve'}</button>
         <button class="sq-action-btn sq-delete-btn" onclick="deleteSavedQuote(this,'${escSqId(q.timestamp)}')" title="Delete this quote">🗑 Delete</button>
@@ -2627,6 +2629,7 @@ function renderSavedQuotes() {
         <th style="text-align:right">Total Declared Value</th>
         <th style="text-align:right">Total Cost</th>
         <th>Transit</th>
+        <th>Order ID</th>
         <th>Actions</th>
       </tr></thead>
       <tbody>${rowsHtml}</tbody>
