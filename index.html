@@ -328,6 +328,17 @@
     line-height: 1.5;
   }
 
+  .howto-list {
+    margin: 0;
+    padding-left: 20px;
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.7;
+  }
+  .howto-list li { margin-bottom: 6px; }
+  .howto-list li:last-child { margin-bottom: 0; }
+  .howto-list strong { color: var(--accent); font-weight: 700; }
+
   /* Animations */
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(20px); }
@@ -1584,6 +1595,15 @@
     <p style="margin-top:12px;font-size:12px;color:var(--muted)">This list is non-exhaustive. Additional regions may not be supported.</p>
   </div>
 
+  <div class="card" style="margin-top:20px">
+    <div class="card-title">How This Works</div>
+    <ol class="howto-list">
+      <li>Clicking <strong>Save Quote</strong> saves your quotation in the <strong>Saved Quotes</strong> tab.</li>
+      <li>If the saved quote is approved by the customer, go to the <strong>Saved Quotes</strong> tab and click <strong>Approve</strong> on that quote.</li>
+      <li>Approving the quote automatically sends a notification to the Ops team to process the export order.</li>
+    </ol>
+  </div>
+
   </div><!-- end tab-calculator -->
 
   <!-- ══════════════════════════════════════════════════════════ -->
@@ -2185,6 +2205,26 @@
 <!-- ══════════════════════════════════════════════════════════ -->
 <!-- $10K WARNING POPUP                                         -->
 <!-- ══════════════════════════════════════════════════════════ -->
+<div id="approve-quote-overlay" class="modal-overlay" onclick="closeApproveQuoteModal(event)">
+  <div class="modal-box" style="max-width:420px;">
+    <div class="modal-header">
+      <div class="modal-title">Approve Quote</div>
+      <button class="modal-close" onclick="closeApproveQuoteModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-field">
+        <label>Order ID <span class="opt">(optional — included in the Ops notification email)</span></label>
+        <input type="text" id="approve-order-id" placeholder="e.g. FB-10234" onkeydown="if(event.key==='Enter'){event.preventDefault();confirmApproveQuote();}" />
+      </div>
+      <div id="approve-modal-error" class="modal-error" style="display:none"></div>
+      <div class="modal-actions">
+        <button class="modal-cancel" onclick="closeApproveQuoteModal()">Cancel</button>
+        <button class="modal-submit" id="approve-modal-submit" onclick="confirmApproveQuote()">Approve Quote</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="tenk-modal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.6);z-index:9999;align-items:center;justify-content:center;">
   <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:32px;width:100%;max-width:420px;box-shadow:0 24px 64px rgba(0,0,0,0.2);text-align:center;">
     <div style="font-size:40px;margin-bottom:16px;">⚠️</div>
@@ -2448,6 +2488,7 @@ function calculate() {
 
 // ── SAVE QUOTE (Rate Calculator tab -> "Saved Quotes" sheet tab) ──
 let savedQuotes = [];        // loaded from the Saved Quotes sheet tab
+let pendingApproveQuote = null; // { btnEl, timestamp } while the Approve modal is open
 let savedQuotesLoaded = false;
 
 const CALC_WH_LABELS = { us: 'US (Salt Lake City)', de: 'Germany (EU)', sg: 'Singapore' };
@@ -2573,7 +2614,7 @@ function renderSavedQuotes() {
       <td style="text-align:right;color:var(--accent);font-weight:600;">${fmtSavedQuoteAmt(q.total, q.currency)}</td>
       <td>${q.transit}</td>
       <td style="white-space:nowrap;">
-        <button class="sq-action-btn sq-approve-btn" onclick="approveQuote(this,'${escSqId(q.timestamp)}')" ${q.approved ? 'disabled' : ''} title="Approve this quote">${q.approved ? '✓ Approved' : '✓ Approve'}</button>
+        <button class="sq-action-btn sq-approve-btn" onclick="openApproveQuoteModal(this,'${escSqId(q.timestamp)}')" ${q.approved ? 'disabled' : ''} title="Approve this quote">${q.approved ? '✓ Approved' : '✓ Approve'}</button>
         <button class="sq-action-btn sq-delete-btn" onclick="deleteSavedQuote(this,'${escSqId(q.timestamp)}')" title="Delete this quote">🗑 Delete</button>
       </td>
     </tr>`).join('');
@@ -2601,24 +2642,50 @@ function escSqId(str) {
 // Both actions are identified by the quote's Timestamp value (its unique key in
 // the Saved Quotes sheet tab), and both round-trip through the same Apps Script
 // Web App used elsewhere in this file (gasPost / APPS_SCRIPT_URL).
-async function approveQuote(btnEl, timestamp) {
+function openApproveQuoteModal(btnEl, timestamp) {
   const row = savedQuotes.find(q => q.timestamp === timestamp);
   if (!row || row.approved) return;
 
-  const td = btnEl.closest('td');
-  const btns = td ? td.querySelectorAll('button') : [btnEl];
-  btns.forEach(b => b.disabled = true);
-  btnEl.textContent = 'Approving…';
+  pendingApproveQuote = { btnEl, timestamp };
+  const input = document.getElementById('approve-order-id');
+  input.value = '';
+  const errEl = document.getElementById('approve-modal-error');
+  errEl.style.display = 'none';
+  document.getElementById('approve-quote-overlay').classList.add('open');
+  setTimeout(() => input.focus(), 50);
+}
 
-  const res = await gasPost({ action: 'approveQuote', timestamp: timestamp });
+function closeApproveQuoteModal(e) {
+  if (e && e.target !== document.getElementById('approve-quote-overlay')) return;
+  document.getElementById('approve-quote-overlay').classList.remove('open');
+  pendingApproveQuote = null;
+}
+
+async function confirmApproveQuote() {
+  if (!pendingApproveQuote) return;
+  const { btnEl, timestamp } = pendingApproveQuote;
+  const orderId = (document.getElementById('approve-order-id').value || '').trim();
+  const errEl = document.getElementById('approve-modal-error');
+  errEl.style.display = 'none';
+
+  const submitBtn = document.getElementById('approve-modal-submit');
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Approving…';
+
+  const res = await gasPost({ action: 'approveQuote', timestamp: timestamp, orderId: orderId });
+
+  submitBtn.disabled = false;
+  submitBtn.textContent = 'Approve Quote';
 
   if (res && res.success) {
-    row.approved = true;
+    const row = savedQuotes.find(q => q.timestamp === timestamp);
+    if (row) { row.approved = true; row.orderId = orderId; }
+    pendingApproveQuote = null;
+    document.getElementById('approve-quote-overlay').classList.remove('open');
     renderSavedQuotes();
   } else {
-    btns.forEach(b => b.disabled = false);
-    btnEl.textContent = '✓ Approve';
-    alert('Approve failed: ' + (res && res.error ? res.error : 'check Apps Script URL'));
+    errEl.textContent = 'Approve failed: ' + (res && res.error ? res.error : 'check Apps Script URL');
+    errEl.style.display = 'block';
   }
 }
 
