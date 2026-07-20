@@ -458,6 +458,35 @@
   .tab-btn:hover { color: var(--text); background: var(--surface2); }
   .tab-btn.active { background: var(--accent); color: #ffffff; }
 
+  /* -- MAIN TAB NAVIGATION (top-level section switcher) -- */
+  .main-tab-nav {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .main-tab-btn {
+    flex: 1;
+    padding: 16px 22px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .main-tab-btn:hover { color: var(--text); border-color: rgba(37,99,235,0.4); }
+  .main-tab-btn.active {
+    background: var(--text);
+    color: #ffffff;
+    border-color: var(--text);
+  }
+
+  .tab-nav.sub-nav { margin-bottom: 32px; }
+
   .tab-panel { display: none; }
   .tab-panel.active { display: block; }
 
@@ -1490,13 +1519,23 @@
     <p class="subtitle">Rate calculator and shipment repository for Firstbase global exports.</p>
   </header>
 
-  <!-- TAB NAVIGATION -->
-  <div class="tab-nav">
-    <button class="tab-btn active" onclick="switchTab('calculator')">📦 Rate Calculator</button>
-    <button class="tab-btn" onclick="switchTab('saved-quotes')">💾 Saved Quotes</button>
-    <button class="tab-btn" onclick="switchTab('repository')">📋 Shipment Repository</button>
-    <button class="tab-btn" onclick="switchTab('products')">🗂 Product Info</button>
-    <button class="tab-btn" onclick="switchTab('quote')">📝 Create Quote</button>
+  <!-- MAIN TAB NAVIGATION -->
+  <div class="main-tab-nav">
+    <button class="main-tab-btn active" data-group="firstbase-exports" onclick="switchMainTab('firstbase-exports')">Firstbase Exports</button>
+    <button class="main-tab-btn" data-group="exports-ops" onclick="switchMainTab('exports-ops')">Exports x OPS</button>
+  </div>
+
+  <!-- SUB TAB NAVIGATION: FIRSTBASE EXPORTS -->
+  <div class="tab-nav sub-nav" id="subnav-firstbase-exports">
+    <button class="tab-btn active" data-tab="calculator" onclick="switchTab('calculator')">📦 Rate Calculator</button>
+    <button class="tab-btn" data-tab="saved-quotes" onclick="switchTab('saved-quotes')">💾 Saved Quotes</button>
+  </div>
+
+  <!-- SUB TAB NAVIGATION: EXPORTS X OPS -->
+  <div class="tab-nav sub-nav" id="subnav-exports-ops" style="display:none">
+    <button class="tab-btn" data-tab="repository" onclick="switchTab('repository')">📋 Shipment Repository</button>
+    <button class="tab-btn" data-tab="products" onclick="switchTab('products')">🗂 Product Info</button>
+    <button class="tab-btn" data-tab="quote" onclick="switchTab('quote')">📝 Create Quote</button>
   </div>
 
   <!-- ══════════════════════════════════════════════════════════ -->
@@ -1555,7 +1594,7 @@
   <div class="card" style="margin-top:20px">
     <div class="card-title">How This Works</div>
     <ol class="howto-list">
-      <li>Clicking <strong>Save Quote</strong> saves your quotation in the <strong>Saved Quotes</strong> tab.</li>
+      <li>After generating a quote, you will have the option to save the quote. Once saved, all quotes will be visible in the <strong>Saved Quotes</strong> tab.</li>
       <li>If the saved quote is approved by the customer, go to the <strong>Saved Quotes</strong> tab and click <strong>Approve</strong> on that quote.</li>
       <li>Approving the quote automatically sends a notification to the Ops team to process the export order.</li>
     </ol>
@@ -2238,11 +2277,34 @@
 
 <script>
 // ── TAB SWITCHER ────────────────────────────────────────────────
+const TAB_GROUPS = {
+  'firstbase-exports': ['calculator','saved-quotes'],
+  'exports-ops': ['repository','products','quote']
+};
+let lastActiveTab = { 'firstbase-exports': 'calculator', 'exports-ops': 'repository' };
+
+function tabGroupOf(name) {
+  for (const g in TAB_GROUPS) { if (TAB_GROUPS[g].includes(name)) return g; }
+  return null;
+}
+
+function switchMainTab(group) {
+  switchTab(lastActiveTab[group] || TAB_GROUPS[group][0]);
+}
+
 function switchTab(name) {
-  const tabs = ['calculator','saved-quotes','repository','products','quote'];
-  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', tabs[i] === name));
+  const group = tabGroupOf(name);
+  if (group) lastActiveTab[group] = name;
+
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
+
+  if (group) {
+    document.querySelectorAll('.main-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.group === group));
+    document.querySelectorAll('.tab-nav.sub-nav').forEach(el => el.style.display = (el.id === 'subnav-' + group) ? 'flex' : 'none');
+  }
+
   if (name === 'saved-quotes') initSavedQuotesTab();
   if (name === 'repository') initRepo();
   if (name === 'products') renderProductTable();
