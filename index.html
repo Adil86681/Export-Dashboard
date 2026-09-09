@@ -5,15 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Firstbase Export Rate Calculator</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-<!-- ── CLERK SSO (v4 — full UI bundle) ──────────────────────────── -->
-<script>const CLERK_PUBLISHABLE_KEY = 'pk_test_dW5pcXVlLXJhY2Nvb24tMzQuY2xlcmsuYWNjb3VudHMuZGV2JA';</script>
-<script
-  data-clerk-publishable-key="pk_test_dW5pcXVlLXJhY2Nvb24tMzQuY2xlcmsuYWNjb3VudHMuZGV2JA"
-  src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@4/dist/clerk.browser.js"
-  crossorigin="anonymous"></script>
-<!-- ──────────────────────────────────────────────────────────────── -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-qZvrmS2ekKPF2mSznTQsxqPgnpkI4DNTlrdUmTzrDgektczlKNRRhy5X5AAOnx5S09ydFYWWNSfcEqDTTHgtNA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js" integrity="sha512-2/YdOMV+YNpanLCF5MdQwaoFRVbTmrJ4u4EpqS/USXAQNUDgI5uwYi6J98WVtJKcfe1AbgerygzDFToxAlOGEQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <style>
   :root {
     --bg: #f1f5f9;
@@ -335,6 +328,17 @@
     line-height: 1.5;
   }
 
+  .howto-list {
+    margin: 0;
+    padding-left: 20px;
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.7;
+  }
+  .howto-list li { margin-bottom: 6px; }
+  .howto-list li:last-child { margin-bottom: 0; }
+  .howto-list strong { color: var(--accent); font-weight: 700; }
+
   /* Animations */
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(20px); }
@@ -453,6 +457,35 @@
   }
   .tab-btn:hover { color: var(--text); background: var(--surface2); }
   .tab-btn.active { background: var(--accent); color: #ffffff; }
+
+  /* -- MAIN TAB NAVIGATION (top-level section switcher) -- */
+  .main-tab-nav {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .main-tab-btn {
+    flex: 1;
+    padding: 16px 22px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .main-tab-btn:hover { color: var(--text); border-color: rgba(37,99,235,0.4); }
+  .main-tab-btn.active {
+    background: var(--text);
+    color: #ffffff;
+    border-color: var(--text);
+  }
+
+  .tab-nav.sub-nav { margin-bottom: 32px; }
 
   .tab-panel { display: none; }
   .tab-panel.active { display: block; }
@@ -664,6 +697,42 @@
   }
   .items-table .total-row td { color: var(--accent); font-weight: 600; }
   .items-table .item-name { color: var(--text); font-size: 11px; max-width: 320px; }
+
+  /* ── Saved Quotes: Approve / Delete actions ── */
+  .sq-action-btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 9px;
+    border-radius: 5px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 0.15s;
+    background: var(--surface2);
+    line-height: 1.6;
+    margin-right: 6px;
+    white-space: nowrap;
+  }
+  .sq-approve-btn { color: #047857; border-color: rgba(4,120,87,0.3); }
+  .sq-approve-btn:hover { background: rgba(4,120,87,0.08); border-color: #047857; }
+  .sq-approve-btn:disabled { opacity: 0.55; cursor: default; }
+  .sq-delete-btn { color: var(--muted); }
+  .sq-delete-btn:hover { color: var(--warn); border-color: rgba(234,88,12,0.4); background: rgba(234,88,12,0.08); }
+  .sq-delete-btn:disabled { opacity: 0.55; cursor: default; }
+  tr.sq-approved-row td { background: #ecfdf5; }
+  .sq-approved-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: #047857;
+    background: #d1fae5;
+    border: 1px solid #6ee7b7;
+    border-radius: 4px;
+    padding: 2px 7px;
+    margin-left: 6px;
+    white-space: nowrap;
+  }
 
   /* ── Add Shipment Button ── */
   .add-shipment-btn {
@@ -1211,99 +1280,6 @@
     .item-row-header { grid-template-columns: 100px 1fr 50px 50px 80px 28px; }
   }
 
-  /* ── CLERK AUTH GATE ──────────────────────────────────────────── */
-  #clerk-gate {
-    position: fixed;
-    inset: 0;
-    z-index: 9999;
-    background: var(--bg);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 32px;
-    padding: 24px;
-  }
-  #clerk-gate::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image:
-      linear-gradient(rgba(37,99,235,0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(37,99,235,0.04) 1px, transparent 1px);
-    background-size: 48px 48px;
-    pointer-events: none;
-  }
-  .clerk-gate-header {
-    text-align: center;
-    position: relative;
-    z-index: 1;
-  }
-  .clerk-gate-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(37,99,235,0.08);
-    border: 1px solid rgba(37,99,235,0.2);
-    border-radius: 100px;
-    padding: 6px 14px;
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    color: var(--accent);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    margin-bottom: 16px;
-  }
-  .clerk-gate-badge::before {
-    content: '';
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--accent);
-    box-shadow: 0 0 8px rgba(37,99,235,0.4);
-    animation: pulse 2s ease infinite;
-  }
-  .clerk-gate-title {
-    font-family: 'Syne', sans-serif;
-    font-size: clamp(22px, 3vw, 32px);
-    font-weight: 800;
-    color: var(--text);
-    line-height: 1.2;
-    margin-bottom: 6px;
-  }
-  .clerk-gate-title span { color: var(--accent); }
-  .clerk-gate-sub {
-    font-size: 14px;
-    color: var(--muted);
-    font-family: 'Plus Jakarta Sans', sans-serif;
-  }
-  #clerk-sign-in-mount {
-    position: relative;
-    z-index: 1;
-    width: 100%;
-    max-width: 420px;
-  }
-  #clerk-loading {
-    position: relative;
-    z-index: 1;
-    font-family: 'DM Mono', monospace;
-    font-size: 12px;
-    color: var(--muted);
-    letter-spacing: 0.06em;
-  }
-  #clerk-user-bar {
-    display: none;
-    position: fixed;
-    top: 16px;
-    right: 20px;
-    z-index: 100;
-    align-items: center;
-    gap: 10px;
-  }
-  #clerk-user-bar.visible { display: flex; }
-  #clerk-user-mount { line-height: 0; }
-  /* ──────────────────────────────────────────────────────────────── */
-
   /* ══════════════════════════════════════════════════════════ */
   /* REPOSITORY v2 — INVOICE-STYLE RENDERING                     */
   /* ══════════════════════════════════════════════════════════ */
@@ -1377,13 +1353,6 @@
     user-select: none;
   }
   .shipment-v2-header:hover { background: #f1f5f9; }
-
-  /* Delivery status highlight */
-  .shipment-v2-header.sh2-delivered { background: #dcfce7; }
-  .shipment-v2-header.sh2-delivered:hover { background: #bbf7d0; }
-  .shipment-v2-header.sh2-pending { background: #fff1e0; }
-  .shipment-v2-header.sh2-pending:hover { background: #ffe4bf; }
-
   .sh2-left { display: flex; align-items: center; gap: 12px; }
   .sh2-num {
     font-family: 'DM Mono', monospace;
@@ -1478,6 +1447,10 @@
     grid-template-columns: repeat(7, 1fr);
     border-bottom: 1px solid var(--border);
   }
+  /* Meta row gets an extra column for End User Name */
+  .inv-meta-head.cols-8, .inv-meta-row.cols-8 {
+    grid-template-columns: repeat(8, 1fr);
+  }
   .inv-meta-head > div, .inv-cost-head > div {
     padding: 8px 12px;
     font-size: 10px;
@@ -1539,27 +1512,40 @@
 </head>
 <body>
 
-<!-- ── CLERK AUTH GATE (shown until signed in) ──────────────────── -->
-<div id="clerk-gate">
-  <div class="clerk-gate-header">
-    <div class="clerk-gate-badge">Firstbase · Export Services</div>
-    <div class="clerk-gate-title">Export <span>Dashboard</span></div>
-    <div class="clerk-gate-sub">Sign in with your Firstbase Google account to continue.</div>
-  </div>
-  <div id="clerk-sign-in-mount"></div>
-  <div id="clerk-loading">Initialising secure login…</div>
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- CLERK AUTH GATE                                             -->
+<!-- Client-side sign-in gate only. This does NOT secure the      -->
+<!-- Google Apps Script endpoint (APPS_SCRIPT_URL) below, which    -->
+<!-- still accepts requests directly regardless of this gate.     -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div id="clerk-loading" style="min-height:100vh;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:13px;color:#64748b;">Loading…</div>
+
+<div id="clerk-sign-in-wrap" style="display:none;min-height:100vh;align-items:center;justify-content:center;padding:48px 16px;">
+  <div id="clerk-sign-in"></div>
 </div>
 
-<!-- ── SIGNED-IN USER BAR (top-right) ──────────────────────────── -->
-<div id="clerk-user-bar">
-  <div id="clerk-user-mount"></div>
+<div id="clerk-unauthorized" style="display:none;min-height:100vh;align-items:center;justify-content:center;padding:48px 16px;text-align:center;">
+  <div style="max-width:420px;">
+    <div style="font-size:40px;margin-bottom:16px;">🚫</div>
+    <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#0f172a;margin-bottom:10px;">Access Restricted</div>
+    <div style="font-size:13px;color:#64748b;line-height:1.6;margin-bottom:24px;">This tool is restricted to Firstbase / AppDirect accounts. Signed in as <span id="clerk-unauthorized-email" style="font-family:'DM Mono',monospace;"></span>.</div>
+    <button onclick="clerkSignOutAndReset()" style="background:#2563eb;color:#fff;border:none;border-radius:8px;padding:10px 24px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;">Sign Out</button>
+  </div>
 </div>
-<!-- ──────────────────────────────────────────────────────────────── -->
+
+<div id="clerk-setup-needed" style="display:none;min-height:100vh;align-items:center;justify-content:center;padding:48px 16px;text-align:center;">
+  <div style="max-width:480px;">
+    <div style="font-size:40px;margin-bottom:16px;">🔧</div>
+    <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#0f172a;margin-bottom:10px;">Clerk Sign-In Not Configured</div>
+    <div style="font-size:13px;color:#64748b;line-height:1.6;">Set <code>CLERK_PUBLISHABLE_KEY</code> near the top of the script (search for "CLERK SSO") to your Clerk Publishable Key — find it in the Clerk Dashboard under API keys → Quick Copy — then reload this page.</div>
+  </div>
+</div>
 
 <div class="glow glow-1"></div>
 <div class="glow glow-2"></div>
 
 <div class="container" id="main-app" style="display:none">
+  <div id="clerk-user-button" style="display:flex;justify-content:flex-end;margin-bottom:12px;"></div>
 
   <header>
     <div class="logo-badge">Firstbase · Export Services</div>
@@ -1567,13 +1553,23 @@
     <p class="subtitle">Rate calculator and shipment repository for Firstbase global exports.</p>
   </header>
 
-  <!-- TAB NAVIGATION -->
-  <div class="tab-nav">
-    <button class="tab-btn active" onclick="switchTab('calculator')">📦 Rate Calculator</button>
-    <button class="tab-btn" onclick="switchTab('repository')">📋 Shipment Repository</button>
-    <button class="tab-btn" onclick="switchTab('repository-v2')">🧾 Repository v2</button>
-    <button class="tab-btn" onclick="switchTab('products')">🗂 Product Info</button>
-    <button class="tab-btn" onclick="switchTab('quote')">📝 Create Quote</button>
+  <!-- MAIN TAB NAVIGATION -->
+  <div class="main-tab-nav">
+    <button class="main-tab-btn active" data-group="firstbase-exports" onclick="switchMainTab('firstbase-exports')">Firstbase Exports</button>
+    <button class="main-tab-btn" data-group="exports-ops" onclick="switchMainTab('exports-ops')">Exports x OPS</button>
+  </div>
+
+  <!-- SUB TAB NAVIGATION: FIRSTBASE EXPORTS -->
+  <div class="tab-nav sub-nav" id="subnav-firstbase-exports">
+    <button class="tab-btn active" data-tab="calculator" onclick="switchTab('calculator')">📦 Rate Calculator</button>
+    <button class="tab-btn" data-tab="saved-quotes" onclick="switchTab('saved-quotes')">💾 Saved Quotes</button>
+  </div>
+
+  <!-- SUB TAB NAVIGATION: EXPORTS X OPS -->
+  <div class="tab-nav sub-nav" id="subnav-exports-ops" style="display:none">
+    <button class="tab-btn" data-tab="repository" onclick="switchTab('repository')">📋 Shipment Repository</button>
+    <button class="tab-btn" data-tab="products" onclick="switchTab('products')">🗂 Product Info</button>
+    <button class="tab-btn" data-tab="quote" onclick="switchTab('quote')">📝 Create Quote</button>
   </div>
 
   <!-- ══════════════════════════════════════════════════════════ -->
@@ -1590,17 +1586,29 @@
           <option value="">— Select warehouse —</option>
           <option value="us">🇺🇸 US (Salt Lake City)</option>
           <option value="de">🇩🇪 Germany (EU)</option>
-          <option value="de_ret">🇩🇪 Germany - Returns</option>
           <option value="sg">🇸🇬 Singapore</option>
         </select>
       </div>
       <div class="field">
         <label>Destination Country</label>
-        <div style="display:flex;gap:8px;align-items:center;">
-          <select id="country" onchange="calculate()" style="flex:1">
-            <option value="">— Select origin first —</option>
-          </select>
-          <button onclick="openAddCountry()" title="Add new destination country" style="flex-shrink:0;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:0 14px;height:42px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;transition:background 0.2s;" onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='var(--accent)'">+ Add Country</button>
+        <select id="country" onchange="calculate()">
+          <option value="">— Select origin first —</option>
+        </select>
+      </div>
+      <div class="field full">
+        <label>Product <span class="opt">(optional — auto-fills declared value)</span></label>
+        <div class="prod-dropdown-wrap" id="pdw-calc-product">
+          <input type="text" class="prod-input" id="calc-product-input" placeholder="Select product…" readonly
+            onclick="toggleCalcProdDropdown()" />
+          <span class="prod-input-arrow">▾</span>
+          <div class="prod-dropdown-menu" id="pdm-calc-product">
+            <div class="prod-search-wrap">
+              <input type="text" class="prod-search-input" placeholder="Search products…"
+                oninput="filterCalcProdOptions(this.value)"
+                onkeydown="calcProdKeyNav(event)" />
+            </div>
+            <div class="prod-list" id="pdl-calc-product"></div>
+          </div>
         </div>
       </div>
       <div class="field">
@@ -1615,6 +1623,15 @@
         <input type="number" id="quantity" min="1" value="1" placeholder="e.g. 1" oninput="calculate()" />
       </div>
     </div>
+  </div>
+
+  <div class="card" style="margin-top:20px">
+    <div class="card-title">How This Works</div>
+    <ol class="howto-list">
+      <li>After generating a quote, you will have the option to save the quote. Once saved, all quotes will be visible in the <strong>Saved Quotes</strong> tab.</li>
+      <li>If the saved quote is approved by the customer, go to the <strong>Saved Quotes</strong> tab and click <strong>Approve</strong> on that quote.</li>
+      <li>Approving the quote automatically sends a notification to the Ops team to process the export order.</li>
+    </ol>
   </div>
 
   <div class="results-card" id="results">
@@ -1636,11 +1653,16 @@
       </div>
       <div class="total-row"><span class="total-label">Total Estimated Cost</span><span class="total-value" id="r-total">—</span></div>
       <div class="transit-badge" id="r-transit">🕐 Transit time: —</div>
-      <div id="r-footnote" style="display:none;margin-top:12px;background:rgba(37,99,235,0.05);border:1px solid rgba(37,99,235,0.15);border-radius:8px;padding:10px 14px;font-size:11px;color:var(--muted);line-height:1.6;font-family:'DM Mono',monospace;">* Returns from Switzerland and Norway are imported into the Firstbase Germany warehouse and processed through the EU warehouse lifecycle (reuse, storage, or ITAD). Only export/import service fees apply; standard return action fees do not apply.</div>
       <div style="margin-top:16px">
         <button id="create-quote-btn" onclick="generateQuotePDF()" style="width:100%;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:14px 20px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:0.03em;transition:background 0.2s;display:flex;align-items:center;justify-content:center;gap:8px;" onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='var(--accent)'">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 2h6l3 3v9a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M10 2v3h3M6 8h4M6 10.5h4M6 5.5h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
           Create Quote PDF
+        </button>
+      </div>
+      <div style="margin-top:10px">
+        <button id="save-quote-btn" onclick="saveQuote()" style="width:100%;background:var(--surface);color:var(--accent);border:1px solid var(--accent);border-radius:10px;padding:14px 20px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:0.03em;transition:background 0.2s,color 0.2s;display:flex;align-items:center;justify-content:center;gap:8px;" onmouseover="this.style.background='var(--accent)';this.style.color='#fff'" onmouseout="this.style.background='var(--surface)';this.style.color='var(--accent)'">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 2.5A1.5 1.5 0 014.5 1h5.586a1.5 1.5 0 011.06.44l1.415 1.414a1.5 1.5 0 01.439 1.06V13.5A1.5 1.5 0 0111.5 15h-7A1.5 1.5 0 013 13.5v-11z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M5.5 1v3h4V1M5 9.5h6v5H5v-5z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+          <span id="save-quote-btn-label">Save Quote</span>
         </button>
       </div>
       <div class="note" style="margin-top:12px">Rates are estimates and may vary based on local taxes, customs clearance, brokerage fees, and contractor costs at time of shipment. Only new, unopened laptops in original packaging qualify.</div>
@@ -1650,7 +1672,7 @@
   <div class="card exclusions-section" style="margin-top:20px">
     <div class="card-title">Excluded Regions</div>
     <div class="exclusions-grid">
-      <span class="exclusion-tag">Albania</span><span class="exclusion-tag">Algeria</span><span class="exclusion-tag">Armenia</span><span class="exclusion-tag">Bangladesh</span><span class="exclusion-tag">China</span><span class="exclusion-tag">Cuba</span><span class="exclusion-tag">Iran</span><span class="exclusion-tag">Kosovo</span><span class="exclusion-tag">Kyrgyzstan</span><span class="exclusion-tag">Lebanon</span><span class="exclusion-tag">Moldova</span><span class="exclusion-tag">North Korea</span><span class="exclusion-tag">Russia</span><span class="exclusion-tag">Sudan</span><span class="exclusion-tag">Syria</span><span class="exclusion-tag">Ukraine</span><span class="exclusion-tag">Venezuela</span><span class="exclusion-tag">Vietnam</span>
+      <span class="exclusion-tag">Albania</span><span class="exclusion-tag">Algeria</span><span class="exclusion-tag">Armenia</span><span class="exclusion-tag">Bangladesh</span><span class="exclusion-tag">China</span><span class="exclusion-tag">Cuba</span><span class="exclusion-tag">Iran</span><span class="exclusion-tag">Kosovo</span><span class="exclusion-tag">Kyrgyzstan</span><span class="exclusion-tag">Lebanon</span><span class="exclusion-tag">Moldova</span><span class="exclusion-tag">North Korea</span><span class="exclusion-tag">Russia</span><span class="exclusion-tag">Sudan</span><span class="exclusion-tag">Syria</span><span class="exclusion-tag">Ukraine</span><span class="exclusion-tag">Venezuela</span>
     </div>
     <p style="margin-top:12px;font-size:12px;color:var(--muted)">This list is non-exhaustive. Additional regions may not be supported.</p>
   </div>
@@ -1658,11 +1680,25 @@
   </div><!-- end tab-calculator -->
 
   <!-- ══════════════════════════════════════════════════════════ -->
-  <!-- TAB 2: SHIPMENT REPOSITORY                                 -->
+  <!-- TAB: SAVED QUOTES                                           -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <div id="tab-saved-quotes" class="tab-panel">
+
+    <div class="repo2-controls">
+      <input type="text" id="sq-search" placeholder="Search warehouse, country, product…" oninput="renderSavedQuotes()" />
+      <span class="repo2-stats" id="sq-stats"></span>
+    </div>
+
+    <div id="sq-content"></div>
+
+  </div><!-- end tab-saved-quotes -->
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- TAB 2: SHIPMENT REPOSITORY (invoice style)                 -->
   <!-- ══════════════════════════════════════════════════════════ -->
   <div id="tab-repository" class="tab-panel">
 
-    <div class="repo-controls">
+    <div class="repo2-controls">
       <input type="text" id="repo-search" placeholder="Search client, order ID, item, country…" oninput="renderRepo()" />
       <select id="repo-filter-client" onchange="renderRepo()">
         <option value="">All Clients</option>
@@ -1670,7 +1706,7 @@
       <select id="repo-filter-ior" onchange="renderRepo()">
         <option value="">All IOR Partners</option>
       </select>
-      <span class="repo-stats" id="repo-stats"></span>
+      <span class="repo2-stats" id="repo-stats"></span>
       <button class="add-shipment-btn" onclick="openAddShipment()">+ Add New Shipment</button>
       <button class="open-sheet-btn" onclick="openSourceSheet()" title="Open the source Google Sheet in a new tab">📊 Open Source Sheet</button>
     </div>
@@ -1678,28 +1714,6 @@
     <div id="repo-content"></div>
 
   </div><!-- end tab-repository -->
-
-  <!-- ══════════════════════════════════════════════════════════ -->
-  <!-- TAB 2b: SHIPMENT REPOSITORY v2 (invoice style)              -->
-  <!-- ══════════════════════════════════════════════════════════ -->
-  <div id="tab-repository-v2" class="tab-panel">
-
-    <div class="repo2-controls">
-      <input type="text" id="repo2-search" placeholder="Search client, order ID, item, country…" oninput="renderRepoV2()" />
-      <select id="repo2-filter-client" onchange="renderRepoV2()">
-        <option value="">All Clients</option>
-      </select>
-      <select id="repo2-filter-ior" onchange="renderRepoV2()">
-        <option value="">All IOR Partners</option>
-      </select>
-      <span class="repo2-stats" id="repo2-stats"></span>
-      <button class="add-shipment-btn" onclick="openAddShipment()">+ Add New Shipment</button>
-      <button class="open-sheet-btn" onclick="openSourceSheet()" title="Open the source Google Sheet in a new tab">📊 Open Source Sheet</button>
-    </div>
-
-    <div id="repo2-content"></div>
-
-  </div><!-- end tab-repository-v2 -->
 
   <!-- ══════════════════════════════════════════════════════════ -->
   <!-- TAB 3: PRODUCT INFO                                         -->
@@ -1859,18 +1873,14 @@
           <option value="">— Select warehouse —</option>
           <option value="us">🇺🇸 US (Salt Lake City)</option>
           <option value="de">🇩🇪 Germany (EU)</option>
-          <option value="de_ret">🇩🇪 Germany - Returns</option>
           <option value="sg">🇸🇬 Singapore</option>
         </select>
       </div>
       <div class="field">
         <label>Destination Country</label>
-        <div style="display:flex;gap:8px;align-items:center;">
-          <select id="cq-country" onchange="calculateQuote()" style="flex:1">
-            <option value="">— Select origin first —</option>
-          </select>
-          <button onclick="openAddCountry()" title="Add new destination country" style="flex-shrink:0;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:0 14px;height:42px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;transition:background 0.2s;" onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='var(--accent)'">+ Add Country</button>
-        </div>
+        <select id="cq-country" onchange="calculateQuote()">
+          <option value="">— Select origin first —</option>
+        </select>
       </div>
       <div class="field">
         <label>Product Type</label>
@@ -2077,6 +2087,10 @@
             <input type="text" id="m-client" placeholder="e.g. Discord" oninput="recalcModal()" />
           </div>
           <div class="modal-field">
+            <label>End User Name</label>
+            <input type="text" id="m-enduser" placeholder="e.g. Jane Smith" />
+          </div>
+          <div class="modal-field">
             <label>Firstbase Order ID</label>
             <input type="text" id="m-orderid" placeholder="e.g. abc123..." />
           </div>
@@ -2235,7 +2249,6 @@
             <option value="">— Select origin —</option>
             <option value="us">🇺🇸 US (Salt Lake City)</option>
             <option value="de">🇩🇪 Germany (EU)</option>
-            <option value="de_ret">🇩🇪 Germany - Returns</option>
             <option value="sg">🇸🇬 Singapore</option>
           </select>
         </div>
@@ -2269,6 +2282,30 @@
 <!-- ══════════════════════════════════════════════════════════ -->
 <!-- $10K WARNING POPUP                                         -->
 <!-- ══════════════════════════════════════════════════════════ -->
+<div id="approve-quote-overlay" class="modal-overlay" onclick="closeApproveQuoteModal(event)">
+  <div class="modal-box" style="max-width:420px;">
+    <div class="modal-header">
+      <div class="modal-title">Approve Quote</div>
+      <button class="modal-close" onclick="closeApproveQuoteModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-field">
+        <label>Customer Name <span style="color:var(--warn)">*</span></label>
+        <input type="text" id="approve-customer-name" placeholder="e.g. Acme Corp" onkeydown="if(event.key==='Enter'){event.preventDefault();confirmApproveQuote();}" />
+      </div>
+      <div class="modal-field">
+        <label>Order ID <span class="opt">(optional — included in the Ops notification email)</span></label>
+        <input type="text" id="approve-order-id" placeholder="e.g. 4eff0cb0-b8eb-4fb7-ab25-c9c4d46c6b55" onkeydown="if(event.key==='Enter'){event.preventDefault();confirmApproveQuote();}" />
+      </div>
+      <div id="approve-modal-error" class="modal-error" style="display:none"></div>
+      <div class="modal-actions">
+        <button class="modal-cancel" onclick="closeApproveQuoteModal()">Cancel</button>
+        <button class="modal-submit" id="approve-modal-submit" onclick="confirmApproveQuote()">Approve Quote</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="tenk-modal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.6);z-index:9999;align-items:center;justify-content:center;">
   <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:32px;width:100%;max-width:420px;box-shadow:0 24px 64px rgba(0,0,0,0.2);text-align:center;">
     <div style="font-size:40px;margin-bottom:16px;">⚠️</div>
@@ -2279,60 +2316,168 @@
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════════════════════ -->
-<!-- ADD COUNTRY MODAL                                          -->
-<!-- ══════════════════════════════════════════════════════════ -->
-<div id="add-country-modal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.6);z-index:9999;align-items:center;justify-content:center;">
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:32px;width:100%;max-width:460px;box-shadow:0 24px 64px rgba(0,0,0,0.2);position:relative;">
-    <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--text);margin-bottom:6px;">Add Destination Country</div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:24px;">This country will be saved and available in the calculator dropdown across sessions.</div>
-
-    <div style="display:grid;gap:16px;">
-      <div>
-        <label style="display:block;font-size:10px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Country Name <span style="color:var(--warn)">*</span></label>
-        <input type="text" id="ac-name" placeholder="e.g. Singapore" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:10px 12px;outline:none;transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'" />
-      </div>
-      <div>
-        <label style="display:block;font-size:10px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Local Duties & Tax (% of CIF Value) <span style="color:var(--warn)">*</span></label>
-        <div style="display:flex;align-items:center;background:var(--surface2);border:1px solid var(--border);border-radius:8px;overflow:hidden;transition:border-color 0.2s;" id="ac-duty-wrap">
-          <input type="number" id="ac-duty" placeholder="e.g. 15" min="0" step="0.1" style="flex:1;background:transparent;border:none;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:10px 12px;outline:none;" onfocus="document.getElementById('ac-duty-wrap').style.borderColor='var(--accent)'" onblur="document.getElementById('ac-duty-wrap').style.borderColor='var(--border)'" />
-          <span style="padding:0 12px;color:var(--muted);font-family:'DM Mono',monospace;font-size:13px;">%</span>
-        </div>
-      </div>
-      <div>
-        <label style="display:block;font-size:10px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">IOR Minimum Fee (USD) <span style="color:var(--warn)">*</span></label>
-        <div style="display:flex;align-items:center;background:var(--surface2);border:1px solid var(--border);border-radius:8px;overflow:hidden;transition:border-color 0.2s;" id="ac-ior-wrap">
-          <span style="padding:0 12px;color:var(--muted);font-family:'DM Mono',monospace;font-size:13px;">$</span>
-          <input type="number" id="ac-ior" placeholder="e.g. 500" min="0" step="0.01" style="flex:1;background:transparent;border:none;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:10px 12px 10px 0;outline:none;" onfocus="document.getElementById('ac-ior-wrap').style.borderColor='var(--accent)'" onblur="document.getElementById('ac-ior-wrap').style.borderColor='var(--border)'" />
-        </div>
-      </div>
-      <div>
-        <label style="display:block;font-size:10px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Fixed Cost Per Shipment (USD) <span style="color:var(--warn)">*</span></label>
-        <div style="display:flex;align-items:center;background:var(--surface2);border:1px solid var(--border);border-radius:8px;overflow:hidden;transition:border-color 0.2s;" id="ac-fixed-wrap">
-          <span style="padding:0 12px;color:var(--muted);font-family:'DM Mono',monospace;font-size:13px;">$</span>
-          <input type="number" id="ac-fixed" placeholder="e.g. 1200" min="0" step="0.01" style="flex:1;background:transparent;border:none;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:10px 12px 10px 0;outline:none;" onfocus="document.getElementById('ac-fixed-wrap').style.borderColor='var(--accent)'" onblur="document.getElementById('ac-fixed-wrap').style.borderColor='var(--border)'" />
-        </div>
-      </div>
-    </div>
-
-    <div id="ac-error" style="display:none;margin-top:14px;padding:10px 14px;background:rgba(234,88,12,0.08);border:1px solid rgba(234,88,12,0.3);border-radius:8px;font-size:12px;color:var(--warn);"></div>
-
-    <div style="display:flex;gap:10px;margin-top:24px;justify-content:flex-end;">
-      <button onclick="closeAddCountry()" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 20px;font-family:'Syne',sans-serif;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;">Cancel</button>
-      <button onclick="submitAddCountry()" style="background:var(--accent);border:none;border-radius:8px;padding:10px 20px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#fff;cursor:pointer;transition:background 0.2s;" onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='var(--accent)'">Save Country</button>
-    </div>
-  </div>
-</div>
 
 <script>
+// ── CLERK SSO (client-side auth gate) ────────────────────────────
+// Set this to your Clerk Publishable Key: Clerk Dashboard → API keys → Quick Copy.
+// Publishable keys are meant to be public/embedded in client-side code (unlike
+// a Clerk *Secret* key, which must never appear here or anywhere client-side).
+//
+// IMPORTANT SCOPE NOTE: this gate only controls what the browser renders. It
+// does NOT secure APPS_SCRIPT_URL below — that endpoint still accepts direct
+// requests from anyone who has the URL, regardless of Clerk sign-in state.
+// Locking that down requires a server-side check inside the Apps Script itself
+// (e.g. verifying a Clerk session token on each request), which lives outside
+// this file.
+const CLERK_PUBLISHABLE_KEY = 'pk_test_dXNhYmxlLWxhYnJhZG9yLTc2LmNsZXJrLmFjY291bnRzLmRldiQ';
+
+// UX-only allowlist. The authoritative restriction must ALSO be configured in
+// Clerk Dashboard → Configure → Restrictions → Allowlist, since anyone could
+// bypass this client-side check by editing the page's JS in their own browser.
+const ALLOWED_EMAIL_DOMAINS = ['appdirect.com', 'firstbase.com'];
+
+function clerkShowScreen(name) {
+  ['clerk-loading', 'clerk-sign-in-wrap', 'clerk-unauthorized', 'clerk-setup-needed'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = (id === name) ? 'flex' : 'none';
+  });
+  const app = document.getElementById('main-app');
+  if (app) app.style.display = (name === 'app') ? '' : 'none';
+}
+
+function clerkUserEmail(user) {
+  if (!user) return '';
+  if (user.primaryEmailAddress && user.primaryEmailAddress.emailAddress) return user.primaryEmailAddress.emailAddress;
+  if (user.emailAddresses && user.emailAddresses[0]) return user.emailAddresses[0].emailAddress || '';
+  return '';
+}
+
+function clerkEmailAllowed(user) {
+  const email = clerkUserEmail(user);
+  const domain = (email.split('@')[1] || '').toLowerCase();
+  return ALLOWED_EMAIL_DOMAINS.includes(domain);
+}
+
+async function clerkSignOutAndReset() {
+  try { await window.Clerk.signOut({ redirectUrl: window.location.pathname }); }
+  catch (e) { console.error('Clerk signOut failed:', e); }
+  // Clerk's addListener callback (registered in initClerkAuth) re-renders the
+  // sign-in screen automatically once the sign-out completes.
+}
+
+function clerkLoadScriptOnce(src) {
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = src; s.async = true; s.crossOrigin = 'anonymous';
+    s.onload = resolve; s.onerror = () => reject(new Error('Failed to load ' + src));
+    document.head.appendChild(s);
+  });
+}
+
+function clerkRenderAuthState() {
+  const user = window.Clerk.user;
+  // Clerk's redirect props default to "/", which is wrong when this file is
+  // hosted at a subpath (e.g. a GitHub Pages project page like
+  // /Export-Dashboard/) — that default bounces users to the bare domain root,
+  // which has nothing deployed there. Pinning these to the page's own path
+  // makes it self-correct wherever this file ends up hosted.
+  const herePath = window.location.pathname;
+
+  if (user) {
+    if (!clerkEmailAllowed(user)) {
+      const emailEl = document.getElementById('clerk-unauthorized-email');
+      if (emailEl) emailEl.textContent = clerkUserEmail(user);
+      clerkShowScreen('clerk-unauthorized');
+      return;
+    }
+    clerkShowScreen('app');
+    const btnDiv = document.getElementById('clerk-user-button');
+    if (btnDiv && !btnDiv.dataset.mounted) {
+      window.Clerk.mountUserButton(btnDiv, { afterSignOutUrl: herePath });
+      btnDiv.dataset.mounted = '1';
+    }
+    return;
+  }
+
+  clerkShowScreen('clerk-sign-in-wrap');
+  const signInDiv = document.getElementById('clerk-sign-in');
+  if (signInDiv && !signInDiv.dataset.mounted) {
+    window.Clerk.mountSignIn(signInDiv, { fallbackRedirectUrl: herePath });
+    signInDiv.dataset.mounted = '1';
+  }
+}
+
+async function initClerkAuth() {
+  clerkShowScreen('clerk-loading');
+
+  if (!CLERK_PUBLISHABLE_KEY || CLERK_PUBLISHABLE_KEY === 'YOUR_CLERK_PUBLISHABLE_KEY') {
+    clerkShowScreen('clerk-setup-needed');
+    return;
+  }
+
+  try {
+    // The Frontend API domain is base64-encoded as the 3rd underscore-separated
+    // segment of the publishable key (documented Clerk pattern) — this lets us
+    // load the CDN bundles dynamically from a single config value.
+    const clerkDomain = atob(CLERK_PUBLISHABLE_KEY.split('_')[2]).slice(0, -1);
+
+    await clerkLoadScriptOnce(`https://${clerkDomain}/npm/@clerk/ui@1/dist/ui.browser.js`);
+
+    await new Promise((resolve, reject) => {
+      const clerkScript = document.createElement('script');
+      clerkScript.src = `https://${clerkDomain}/npm/@clerk/clerk-js@6/dist/clerk.browser.js`;
+      clerkScript.async = true;
+      clerkScript.crossOrigin = 'anonymous';
+      clerkScript.setAttribute('data-clerk-publishable-key', CLERK_PUBLISHABLE_KEY);
+      clerkScript.onload = resolve;
+      clerkScript.onerror = () => reject(new Error('Failed to load clerk.browser.js'));
+      document.head.appendChild(clerkScript);
+    });
+
+    await window.Clerk.load({ ui: { ClerkUI: window.__internal_ClerkUICtor } });
+  } catch (e) {
+    console.error('Clerk failed to load:', e);
+    clerkShowScreen('clerk-setup-needed');
+    return;
+  }
+
+  clerkRenderAuthState();
+  window.Clerk.addListener(() => clerkRenderAuthState());
+}
+
+window.addEventListener('load', initClerkAuth);
+
 // ── TAB SWITCHER ────────────────────────────────────────────────
+const TAB_GROUPS = {
+  'firstbase-exports': ['calculator','saved-quotes'],
+  'exports-ops': ['repository','products','quote']
+};
+let lastActiveTab = { 'firstbase-exports': 'calculator', 'exports-ops': 'repository' };
+
+function tabGroupOf(name) {
+  for (const g in TAB_GROUPS) { if (TAB_GROUPS[g].includes(name)) return g; }
+  return null;
+}
+
+function switchMainTab(group) {
+  switchTab(lastActiveTab[group] || TAB_GROUPS[group][0]);
+}
+
 function switchTab(name) {
-  const tabs = ['calculator','repository','repository-v2','products','quote'];
-  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', tabs[i] === name));
+  const group = tabGroupOf(name);
+  if (group) lastActiveTab[group] = name;
+
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
+
+  if (group) {
+    document.querySelectorAll('.main-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.group === group));
+    document.querySelectorAll('.tab-nav.sub-nav').forEach(el => el.style.display = (el.id === 'subnav-' + group) ? 'flex' : 'none');
+  }
+
+  if (name === 'saved-quotes') initSavedQuotesTab();
   if (name === 'repository') initRepo();
-  if (name === 'repository-v2') initRepoV2();
   if (name === 'products') renderProductTable();
   if (name === 'quote') onQuoteWarehouseChange();
 }
@@ -2343,6 +2488,15 @@ const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzQQKBqWtFnKlgc
 
 function csvUrl(gid) {
   return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}`;
+}
+
+// Wraps fetch() with a timeout so a hung backend/network call can't hang the UI
+// forever. Callers keep their existing try/catch and error-handling paths —
+// a timeout just surfaces as a normal fetch rejection (AbortError).
+function fetchWithTimeout(url, options = {}, timeoutMs = 15000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
 }
 
 function parseCSV(text) {
@@ -2369,18 +2523,19 @@ async function gasPost(payload) {
     return { success: false, error: 'Not configured' };
   }
   try {
-    const r = await fetch(APPS_SCRIPT_URL, {
+    const r = await fetchWithTimeout(APPS_SCRIPT_URL, {
       method: 'POST', redirect: 'follow',
       body: JSON.stringify(payload)
-    });
+    }, 15000);
     return await r.json();
   } catch(e) { return { success: false, error: e.toString() }; }
 }
 
 // ── RATE CALCULATOR ─────────────────────────────────────────────
 // Loaded from Sheet on init — keyed by warehouse then country
-let rates = { us: { currency:'USD', countries:{} }, de: { currency:'EUR', countries:{} }, de_ret: { currency:'EUR', countries:{} }, sg: { currency:'USD', countries:{} } };
-const WH_MAP = { US:'us', DE:'de', 'DE-RETURNS':'de_ret', SG:'sg' };
+let rates = { us: { currency:'USD', countries:{} }, de: { currency:'EUR', countries:{} }, sg: { currency:'USD', countries:{} } };
+let lastCalc = null; // most recent successful calculate() result, used by Save Quote
+const WH_MAP = { US:'us', DE:'de', SG:'sg' };
 
 // Rates sourced directly from Notion: https://firstbase.notion.site/Firstbase-Export-Rates-0a9fb6c1dca94a48b36da78fa7316bf5
 // Last Updated: March 12, 2026
@@ -2451,13 +2606,6 @@ async function loadRates() {
         'Switzerland': { duty: 0.09, ior: 50, fixed: 625, transit: '15-18 business days' },
         'Norway':      { duty: 0.25, ior: 50, fixed: 825, transit: '15-18 business days' }
       }
-    },
-    de_ret: {
-      currency: 'EUR',
-      countries: {
-        'Switzerland': { duty: 0.19, ior: 50, fixed: 800, transit: '15-18 business days from pickup' },
-        'Norway':      { duty: 0.19, ior: 50, fixed: 900, transit: '15-18 business days from pickup' }
-      }
     }
   };
   onWarehouseChange();
@@ -2467,6 +2615,42 @@ async function loadRates() {
 const shipmentsGid        = 1146493596; // Shipment Repository
 const productsGid         = 862516178;  // Product Info
 const customCountriesGid  = 1917705446; // Custom Countries
+const savedQuotesGid      = 847208865;  // Saved Quotes
+
+// ── CUSTOM COUNTRIES (loaded from the "Custom Countries" Sheet tab) ──
+// Columns: Country, Warehouse (US/DE/SG), Local Duties (%),
+//          IOR Min Fee (USD), Fixed Cost (USD), Transit Time
+// Overlays/extends the hardcoded `rates` table above, so this sheet is the
+// live source of truth for destination countries once loaded. New countries
+// are added manually in the sheet (no in-app "Add Country" flow).
+// Note: any legacy "DE-RETURNS" rows are folded into the regular "DE" bucket
+// (Germany - Returns is no longer a separate origin warehouse), so if the
+// sheet still has old Returns-specific rows for the same country, whichever
+// row appears last wins — worth removing those old rows from the sheet.
+async function loadCustomCountries() {
+  try {
+    const text = await fetchWithTimeout(csvUrl(customCountriesGid)).then(r => r.text());
+    const rows = parseCSV(text);
+    rows.forEach(row => {
+      const country = (row['Country'] || '').trim();
+      if (!country) return;
+
+      const whRaw   = (row['Warehouse'] || '').trim().toUpperCase();
+      const transit = (row['Transit Time'] || '').trim() || '~20 business days';
+      const duty    = parseFloat(row['Local Duties (%)']);
+      const ior     = parseFloat(row['IOR Min Fee (USD)']);
+      const fixed   = parseFloat(row['Fixed Cost (USD)']);
+      if (isNaN(duty) || isNaN(ior) || isNaN(fixed)) return;
+
+      const whKey = whRaw === 'DE-RETURNS' ? 'de' : (WH_MAP[whRaw] || whRaw.toLowerCase());
+
+      if (!rates[whKey]) {
+        rates[whKey] = { currency: whKey === 'de' ? 'EUR' : 'USD', countries: {} };
+      }
+      rates[whKey].countries[country] = { duty, ior, fixed, transit };
+    });
+  } catch(e) { console.error('loadCustomCountries error:', e); }
+}
 
 function onWarehouseChange() {
   const wh = document.getElementById('warehouse').value;
@@ -2498,66 +2682,387 @@ function calculate() {
         val=parseFloat(document.getElementById('value').value),
         qty=Math.max(1, parseInt(document.getElementById('quantity').value)||1);
   const content=document.getElementById('breakdown-content'), empty=document.getElementById('empty-state');
-  if (!wh||!country||isNaN(val)||val<=0){content.style.display='none';empty.style.display='block';return;}
+  if (!wh||!country||isNaN(val)||val<=0){content.style.display='none';empty.style.display='block';lastCalc=null;updateSaveQuoteBtn();return;}
 
   let r = (rates[wh] && rates[wh].countries[country]) ? rates[wh].countries[country] : null;
-  if(!r){content.style.display='none';empty.style.display='block';return;}
+  if(!r){content.style.display='none';empty.style.display='block';lastCalc=null;updateSaveQuoteBtn();return;}
 
   const currency = (rates[wh] && rates[wh].currency) ? rates[wh].currency : 'USD';
   const totalVal = val * qty;
-  const isReturns = wh === 'de_ret';
 
   // Show $10k popup if total declared value exceeds $9999
   if (totalVal > 9999) {
     document.getElementById('tenk-modal').style.display='flex';
     content.style.display='none'; empty.style.display='block';
+    lastCalc=null;updateSaveQuoteBtn();
     return;
   }
 
-  let duty, ior, fixed, subtotal, handling, total;
+  const duty     = totalVal * r.duty;
+  const ior      = r.ior * qty;
+  const fixed    = r.fixed * qty;
+  const subtotal = duty + ior + fixed;
+  const handling = subtotal * 0.08;
+  const total    = subtotal + handling;
 
-  if (isReturns) {
-    // Germany - Returns formula: no qty scaling on fixed or IOR
-    duty     = totalVal * r.duty;          // 19% of total declared value
-    ior      = r.ior;                      // flat €50, no qty scaling
-    fixed    = r.fixed;                    // per shipment, no qty scaling
-    subtotal = duty + ior + fixed;
-    handling = subtotal * 0.08;
-    total    = subtotal + handling;
-  } else {
-    duty    = totalVal * r.duty;
-    ior     = r.ior * qty;
-    fixed   = r.fixed * qty;
-    subtotal = duty + ior + fixed;
-    handling = subtotal * 0.08;
-    total    = subtotal + handling;
-  }
-
-  // Update duty row label
   const dutyLabelEl = document.getElementById('r-duty-label');
-  if (dutyLabelEl) dutyLabelEl.textContent = isReturns ? 'German Import VAT ' : 'Local Duties & Tax ';
+  if (dutyLabelEl) dutyLabelEl.textContent = 'Local Duties & Tax ';
 
   document.getElementById('r-value').textContent=fmtVal(val,currency);
   document.getElementById('r-qty').textContent=qty.toLocaleString();
   document.getElementById('r-total-value').textContent=fmtVal(totalVal,currency);
   document.getElementById('r-duty-pct').textContent='('+(r.duty*100).toFixed(0)+'% of total declared value)';
   document.getElementById('r-duty').textContent=fmt(duty,currency);
-  document.getElementById('r-ior-note').textContent=(!isReturns && qty>1)?'(×'+qty+')':'';
+  document.getElementById('r-ior-note').textContent=(qty>1)?'(×'+qty+')':'';
   document.getElementById('r-ior').textContent=fmt(ior,currency);
-  document.getElementById('r-fixed-note').textContent=(!isReturns && qty>1)?'(×'+qty+')':'';
+  document.getElementById('r-fixed-note').textContent=(qty>1)?'(×'+qty+')':'';
   document.getElementById('r-fixed').textContent=fmt(fixed,currency);
   document.getElementById('r-subtotal').textContent=fmt(subtotal,currency);
   document.getElementById('r-handling').textContent=fmt(handling,currency);
   document.getElementById('r-total').textContent=fmt(total,currency);
   document.getElementById('r-transit').textContent='🕐 Transit time: '+r.transit;
 
-  // Footnote for Germany - Returns
-  const footnoteEl = document.getElementById('r-footnote');
-  if (footnoteEl) {
-    footnoteEl.style.display = isReturns ? 'block' : 'none';
-  }
+  lastCalc = { wh, country, val, qty, totalVal, duty, ior, fixed, subtotal, handling, total, currency, transit: r.transit };
+  updateSaveQuoteBtn();
 
   content.style.display='block'; empty.style.display='none';
+}
+
+// ── SAVE QUOTE (Rate Calculator tab -> "Saved Quotes" sheet tab) ──
+let savedQuotes = [];        // loaded from the Saved Quotes sheet tab
+let pendingApproveQuote = null; // { btnEl, timestamp } while the Approve modal is open
+let savedQuotesLoaded = false;
+
+const CALC_WH_LABELS = { us: 'US (Salt Lake City)', de: 'Germany (EU)', sg: 'Singapore' };
+
+function updateSaveQuoteBtn() {
+  const label = document.getElementById('save-quote-btn-label');
+  const btn   = document.getElementById('save-quote-btn');
+  if (!label || !btn) return;
+  label.textContent = 'Save Quote';
+  btn.disabled = false;
+}
+
+async function saveQuote() {
+  if (!lastCalc) return;
+  const btn   = document.getElementById('save-quote-btn');
+  const label = document.getElementById('save-quote-btn-label');
+  const productInput = document.getElementById('calc-product-input');
+  const product = productInput ? productInput.value.trim() : '';
+
+  const quote = {
+    warehouse:  CALC_WH_LABELS[lastCalc.wh] || lastCalc.wh,
+    country:    lastCalc.country,
+    product:    product,
+    value:      lastCalc.val,
+    quantity:   lastCalc.qty,
+    totalValue: lastCalc.totalVal,
+    duty:       lastCalc.duty,
+    ior:        lastCalc.ior,
+    fixed:      lastCalc.fixed,
+    subtotal:   lastCalc.subtotal,
+    handling:   lastCalc.handling,
+    total:      lastCalc.total,
+    currency:   lastCalc.currency,
+    transit:    lastCalc.transit
+  };
+
+  btn.disabled = true;
+  label.textContent = 'Saving…';
+
+  const res = await gasPost({ action: 'saveQuote', quote: quote });
+
+  btn.disabled = false;
+
+  if (res && res.success) {
+    label.textContent = '✓ Saved!';
+    savedQuotesLoaded = false; // force a refresh next time the Saved Quotes tab is opened
+    setTimeout(() => { label.textContent = 'Save Quote'; }, 2200);
+  } else {
+    label.textContent = 'Save Quote';
+    alert('Save failed: ' + (res && res.error ? res.error : 'check Apps Script URL'));
+  }
+}
+
+// ── SAVED QUOTES TAB (reads back the "Saved Quotes" sheet tab) ──
+async function initSavedQuotesTab() {
+  if (savedQuotesLoaded) { renderSavedQuotes(); return; }
+  document.getElementById('sq-content').innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-family:\'DM Mono\',monospace;font-size:13px;">Loading saved quotes…</div>';
+  await loadSavedQuotesData();
+  savedQuotesLoaded = true;
+  renderSavedQuotes();
+}
+
+async function loadSavedQuotesData() {
+  try {
+    const text = await fetchWithTimeout(csvUrl(savedQuotesGid)).then(r => r.text());
+    const rows = parseCSV(text);
+    savedQuotes = rows.map(r => ({
+      timestamp:  r['Timestamp'] || '',
+      warehouse:  r['Warehouse'] || '',
+      country:    r['Country'] || '',
+      product:    r['Product'] || '',
+      value:      r['Declared Value/Unit'] || '',
+      quantity:   r['Quantity'] || '',
+      totalValue: r['Total Declared Value'] || '',
+      duty:       r['Duty'] || '',
+      ior:        r['IOR Fee'] || '',
+      fixed:      r['Fixed Cost'] || '',
+      subtotal:   r['Subtotal'] || '',
+      handling:   r['Handling'] || '',
+      total:      r['Total'] || '',
+      currency:   r['Currency'] || '',
+      transit:    r['Transit'] || '',
+      approved:   (r['Approved'] || '').trim().toLowerCase() === 'yes',
+      orderId:    r['Order ID'] || '',
+      customerName: r['Customer Name'] || ''
+    })).filter(q => q.timestamp || q.country);
+  } catch(e) { console.error('loadSavedQuotesData error:', e); }
+}
+
+function fmtSavedQuoteAmt(n, currency) {
+  const num = parseFloat(n);
+  if (isNaN(num)) return n || '—';
+  const s = currency === 'EUR' ? '€' : '$';
+  return s + num.toLocaleString('en-US', {minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+function renderSavedQuotes() {
+  const searchEl = document.getElementById('sq-search');
+  const search = (searchEl ? searchEl.value : '').toLowerCase();
+
+  let filtered = savedQuotes.filter(q => {
+    if (!search) return true;
+    const hay = [q.warehouse, q.country, q.product, q.customerName].join(' ').toLowerCase();
+    return hay.includes(search);
+  });
+
+  // Sheet rows are appended in save order (oldest first) — show newest first
+  filtered = filtered.slice().reverse();
+
+  document.getElementById('sq-stats').textContent = filtered.length + ' of ' + savedQuotes.length + ' saved quotes';
+
+  if (!filtered.length) {
+    document.getElementById('sq-content').innerHTML = '<div class="empty-state" style="padding:48px;text-align:center;color:var(--muted)">No saved quotes match your filters.</div>';
+    return;
+  }
+
+  const rowsHtml = filtered.map(q => `
+    <tr${q.approved ? ' class="sq-approved-row"' : ''}>
+      <td>${escapeHtml(q.timestamp)}${q.approved ? '<span class="sq-approved-badge">✓ Approved</span>' : ''}</td>
+      <td>${escapeHtml(q.customerName) || '—'}</td>
+      <td>${escapeHtml(q.warehouse)}</td>
+      <td><span class="country-tag">${escapeHtml(q.country)}</span></td>
+      <td class="item-name">${escapeHtml(q.product) || '—'}</td>
+      <td style="text-align:center">${escapeHtml(q.quantity)}</td>
+      <td style="text-align:right">${fmtSavedQuoteAmt(q.totalValue, q.currency)}</td>
+      <td style="text-align:right;color:var(--accent);font-weight:600;">${fmtSavedQuoteAmt(q.total, q.currency)}</td>
+      <td>${escapeHtml(q.transit)}</td>
+      <td>${escapeHtml(q.orderId) || '—'}</td>
+      <td style="white-space:nowrap;">
+        <button class="sq-action-btn sq-approve-btn" onclick="openApproveQuoteModal(this,'${escSqId(q.timestamp)}')" ${q.approved ? 'disabled' : ''} title="Approve this quote">${q.approved ? '✓ Approved' : '✓ Approve'}</button>
+        <button class="sq-action-btn sq-delete-btn" onclick="deleteSavedQuote(this,'${escSqId(q.timestamp)}')" title="Delete this quote">🗑 Delete</button>
+      </td>
+    </tr>`).join('');
+
+  document.getElementById('sq-content').innerHTML = `
+    <table class="items-table">
+      <thead><tr>
+        <th>Saved</th><th>Customer Name</th><th>Warehouse</th><th>Country</th><th>Product</th>
+        <th style="text-align:center">Qty</th>
+        <th style="text-align:right">Total Declared Value</th>
+        <th style="text-align:right">Total Cost</th>
+        <th>Transit</th>
+        <th>Order ID</th>
+        <th>Actions</th>
+      </tr></thead>
+      <tbody>${rowsHtml}</tbody>
+    </table>`;
+}
+
+// Escapes a saved-quote timestamp for safe embedding inside an inline onclick="...('...')" handler
+function escSqId(str) {
+  return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+}
+
+// ── APPROVE / DELETE a saved quote (Saved Quotes tab) ──
+// Both actions are identified by the quote's Timestamp value (its unique key in
+// the Saved Quotes sheet tab), and both round-trip through the same Apps Script
+// Web App used elsewhere in this file (gasPost / APPS_SCRIPT_URL).
+function openApproveQuoteModal(btnEl, timestamp) {
+  const row = savedQuotes.find(q => q.timestamp === timestamp);
+  if (!row || row.approved) return;
+
+  pendingApproveQuote = { btnEl, timestamp };
+  const nameInput = document.getElementById('approve-customer-name');
+  nameInput.value = '';
+  const input = document.getElementById('approve-order-id');
+  input.value = '';
+  const errEl = document.getElementById('approve-modal-error');
+  errEl.style.display = 'none';
+  document.getElementById('approve-quote-overlay').classList.add('open');
+  setTimeout(() => nameInput.focus(), 50);
+}
+
+function closeApproveQuoteModal(e) {
+  if (e && e.target !== document.getElementById('approve-quote-overlay')) return;
+  document.getElementById('approve-quote-overlay').classList.remove('open');
+  pendingApproveQuote = null;
+}
+
+async function confirmApproveQuote() {
+  if (!pendingApproveQuote) return;
+  const { btnEl, timestamp } = pendingApproveQuote;
+  const customerName = (document.getElementById('approve-customer-name').value || '').trim();
+  const orderId = (document.getElementById('approve-order-id').value || '').trim();
+  const errEl = document.getElementById('approve-modal-error');
+  errEl.style.display = 'none';
+
+  if (!customerName) {
+    errEl.textContent = 'Customer Name is required.';
+    errEl.style.display = 'block';
+    document.getElementById('approve-customer-name').focus();
+    return;
+  }
+
+  const submitBtn = document.getElementById('approve-modal-submit');
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Approving…';
+
+  const res = await gasPost({ action: 'approveQuote', timestamp: timestamp, orderId: orderId, customerName: customerName });
+
+  submitBtn.disabled = false;
+  submitBtn.textContent = 'Approve Quote';
+
+  if (res && res.success) {
+    const row = savedQuotes.find(q => q.timestamp === timestamp);
+    if (row) { row.approved = true; row.orderId = orderId; row.customerName = customerName; }
+    pendingApproveQuote = null;
+    document.getElementById('approve-quote-overlay').classList.remove('open');
+    renderSavedQuotes();
+  } else {
+    errEl.textContent = 'Approve failed: ' + (res && res.error ? res.error : 'check Apps Script URL');
+    errEl.style.display = 'block';
+  }
+}
+
+async function deleteSavedQuote(btnEl, timestamp) {
+  if (!confirm('Delete this saved quote? This removes it from the app and the Google Sheet, and cannot be undone.')) return;
+
+  const td = btnEl.closest('td');
+  const btns = td ? td.querySelectorAll('button') : [btnEl];
+  btns.forEach(b => b.disabled = true);
+  btnEl.textContent = 'Deleting…';
+
+  const res = await gasPost({ action: 'deleteQuote', timestamp: timestamp });
+
+  if (res && res.success) {
+    savedQuotes = savedQuotes.filter(q => q.timestamp !== timestamp);
+    renderSavedQuotes();
+  } else {
+    btns.forEach(b => b.disabled = false);
+    btnEl.textContent = '🗑 Delete';
+    alert('Delete failed: ' + (res && res.error ? res.error : 'check Apps Script URL'));
+  }
+}
+
+// ── CALCULATOR PRODUCT DROPDOWN (sourced from Product Info catalog) ──
+function toggleCalcProdDropdown() {
+  const wrap = document.getElementById('pdw-calc-product');
+  const menu = document.getElementById('pdm-calc-product');
+  const isOpen = wrap.classList.contains('open');
+
+  // Close all other open dropdowns
+  document.querySelectorAll('.prod-dropdown-wrap.open').forEach(w => {
+    if (w.id !== 'pdw-calc-product') w.classList.remove('open');
+  });
+
+  if (isOpen) { wrap.classList.remove('open'); return; }
+
+  // Position the menu relative to the input
+  const inputEl = wrap.querySelector('.prod-input');
+  const rect = inputEl.getBoundingClientRect();
+  const spaceBelow = window.innerHeight - rect.bottom;
+  const menuHeight = 320;
+
+  menu.style.width = Math.max(rect.width, 380) + 'px';
+  menu.style.left = rect.left + 'px';
+
+  if (spaceBelow >= menuHeight || spaceBelow > 200) {
+    menu.style.top = (rect.bottom + 4) + 'px';
+    menu.style.bottom = 'auto';
+  } else {
+    menu.style.bottom = (window.innerHeight - rect.top + 4) + 'px';
+    menu.style.top = 'auto';
+  }
+
+  wrap.classList.add('open');
+
+  setTimeout(() => {
+    const si = wrap.querySelector('.prod-search-input');
+    if (si) { si.value = ''; si.focus(); filterCalcProdOptions(''); }
+  }, 50);
+}
+
+function renderCalcProdOptions(query) {
+  const list = document.getElementById('pdl-calc-product');
+  if (!list) return;
+  const q = (query || '').toLowerCase();
+  const all = getAllProducts();
+  const filtered = q ? all.filter(p =>
+    p.name.toLowerCase().includes(q) || (p.category||'').toLowerCase().includes(q)
+  ) : all;
+
+  if (!filtered.length) {
+    list.innerHTML = `<div class="prod-no-results">No products found</div>`;
+    return;
+  }
+
+  const currentVal = document.getElementById('calc-product-input').value;
+
+  list.innerHTML = filtered.map(p => `
+    <div class="prod-option${p.name === currentVal ? ' selected' : ''}"
+      data-name="${p.name.replace(/"/g,'&quot;')}"
+      data-value="${p.value}"
+      onclick="selectCalcProdOption(this)">
+      <span class="prod-option-name">${escapeHtml(p.name)}</span>
+      <span class="prod-option-meta">
+        ${p.category ? `<span class="prod-option-cat">${escapeHtml(p.category)}</span>` : ''}
+        <span class="prod-option-weight">${p.weight} lbs</span>
+      </span>
+    </div>`).join('');
+}
+
+function filterCalcProdOptions(query) {
+  renderCalcProdOptions(query);
+}
+
+function selectCalcProdOption(optEl) {
+  const name  = optEl.dataset.name;
+  const value = optEl.dataset.value;
+  document.getElementById('calc-product-input').value = name;
+  if (value) document.getElementById('value').value = parseFloat(value) || '';
+  document.getElementById('pdw-calc-product').classList.remove('open');
+  calculate();
+}
+
+function calcProdKeyNav(e) {
+  const list = document.getElementById('pdl-calc-product');
+  if (!list) return;
+  const opts = list.querySelectorAll('.prod-option');
+  let hi = [...opts].findIndex(o => o.classList.contains('highlighted'));
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    if (hi < opts.length - 1) { if (hi >= 0) opts[hi].classList.remove('highlighted'); opts[hi+1].classList.add('highlighted'); opts[hi+1].scrollIntoView({block:'nearest'}); }
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    if (hi > 0) { opts[hi].classList.remove('highlighted'); opts[hi-1].classList.add('highlighted'); opts[hi-1].scrollIntoView({block:'nearest'}); }
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    if (hi >= 0) selectCalcProdOption(opts[hi]);
+  } else if (e.key === 'Escape') {
+    document.getElementById('pdw-calc-product')?.classList.remove('open');
+  }
 }
 
 // ── SHIPMENT REPOSITORY DATA ─────────────────────────────────────
@@ -2567,12 +3072,13 @@ let repoLoaded = false;
 
 async function loadShipments() {
   try {
-    const text = await fetch(csvUrl(shipmentsGid)).then(r => r.text());
+    const text = await fetchWithTimeout(csvUrl(shipmentsGid)).then(r => r.text());
     const rows = parseCSV(text);
     shipments = rows.map((r, idx) => ({
       month:     r['Month'] || '',
       num:       parseInt(r['Num']) || idx+1,
       client:    r['Client'] || '',
+      endUser:   r['End User Name'] || '',
       orderId:   r['Order ID'] || '',
       planned:   r['Planned'] || '',
       confirmed: r['Confirmed'] || '',
@@ -2597,25 +3103,35 @@ async function loadShipments() {
   } catch(e) { console.error('loadShipments error:', e); }
 }
 
-// ── REPO RENDERER ────────────────────────────────────────────────
-let repoInited = false;
+// ── SHIPMENT REPOSITORY RENDERER (invoice-style) ──────────────────
+
 function initRepo() {
-  if (repoLoaded) { renderRepo(); return; }
+  if (repoLoaded) {
+    populateRepoFilters();
+    renderRepo();
+    return;
+  }
   document.getElementById('repo-content').innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-family:\'DM Mono\',monospace;font-size:13px;">Loading shipments…</div>';
   loadShipments().then(() => {
     repoLoaded = true;
-    repoInited = true;
-    // Populate filters
-    const clients = [...new Set(shipments.map(s => s.client))].sort();
-    const iors = [...new Set(shipments.map(s => s.ior).filter(Boolean))].sort();
-    const cs = document.getElementById('repo-filter-client');
-    cs.innerHTML = '<option value="">All Clients</option>';
-    clients.forEach(c => { const o=document.createElement('option'); o.value=o.textContent=c; cs.appendChild(o); });
-    const is = document.getElementById('repo-filter-ior');
-    is.innerHTML = '<option value="">All IOR Partners</option>';
-    iors.forEach(i => { const o=document.createElement('option'); o.value=o.textContent=i; is.appendChild(o); });
+    populateRepoFilters();
     renderRepo();
   });
+}
+
+function populateRepoFilters() {
+  const clients = [...new Set(shipments.map(s => s.client))].sort();
+  const iors = [...new Set(shipments.map(s => s.ior).filter(Boolean))].sort();
+  const cs = document.getElementById('repo-filter-client');
+  cs.innerHTML = '<option value="">All Clients</option>';
+  clients.forEach(c => { const o=document.createElement('option'); o.value=o.textContent=c; cs.appendChild(o); });
+  const is = document.getElementById('repo-filter-ior');
+  is.innerHTML = '<option value="">All IOR Partners</option>';
+  iors.forEach(i => { const o=document.createElement('option'); o.value=o.textContent=i; is.appendChild(o); });
+}
+
+function escapeHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
 function renderRepo() {
@@ -2627,25 +3143,22 @@ function renderRepo() {
     if (clientF && s.client !== clientF) return false;
     if (iorF && s.ior !== iorF) return false;
     if (search) {
-      const hay = [s.client, s.orderId, s.ior, s.invoice, ...s.items.map(i=>i.item+i.country)].join(' ').toLowerCase();
+      const hay = [s.client, s.endUser, s.orderId, s.ior, s.invoice, ...s.items.map(i=>i.item+i.country)].join(' ').toLowerCase();
       if (!hay.includes(search)) return false;
     }
     return true;
   });
 
-  // Sort newest-to-oldest by shipment number (descending)
   filtered.sort((a, b) => (b.num || 0) - (a.num || 0));
 
   document.getElementById('repo-stats').textContent = filtered.length + ' of ' + shipments.length + ' shipments';
 
-  // Group by month — months appear newest-first because `filtered` is already
-  // sorted by num descending, so the first month encountered is the most recent.
   const byMonth = {};
   filtered.forEach(s => { if (!byMonth[s.month]) byMonth[s.month] = []; byMonth[s.month].push(s); });
 
   const html = Object.entries(byMonth).map(([month, list]) => `
-    <div class="month-section">
-      <div class="month-header"><span class="month-label">${month}</span></div>
+    <div class="month-section-v2">
+      <div class="month-banner-v2">${escapeHtml(month) || 'Unscheduled'} Shipments</div>
       ${list.map(s => renderBlock(s)).join('')}
     </div>
   `).join('');
@@ -2655,138 +3168,7 @@ function renderRepo() {
 
 function renderBlock(s) {
   const id = 'ship-' + s.num;
-  const itemRows = s.items.filter(i => i.item).map(i => `
-    <tr>
-      <td><span class="country-tag">${i.country}</span></td>
-      <td class="item-name">${i.item}</td>
-      <td style="text-align:center">${i.count || '—'}</td>
-      <td style="text-align:center">${i.weight || '—'}</td>
-      <td style="text-align:right">${i.value}</td>
-    </tr>
-  `).join('');
-
-  const totalCount = s.items.reduce((a,i)=>a+(i.count||0),0);
-
-  return `
-  <div class="shipment-block" id="${id}">
-    <div class="shipment-header" onclick="toggleBlock('${id}')">
-      <div class="sh-left">
-        <span class="sh-num">#${s.num}</span>
-        <span class="sh-client">${s.client}</span>
-        ${s.orderId ? `<span class="sh-order">${s.orderId}</span>` : ''}
-      </div>
-      <div class="sh-right">
-        <span class="sh-quote">${s.quote}</span>
-        ${s.ior ? `<span class="sh-ior">${s.ior}</span>` : ''}
-        <button class="sh-action-btn sh-pdf-btn" onclick="event.stopPropagation();exportPDF(${s.num})" title="Export PDF">PDF</button>
-        <button class="sh-action-btn sh-edit-btn" onclick="event.stopPropagation();openEditShipment(${s.num})" title="Edit shipment">✏ Edit</button>
-        <button class="sh-action-btn sh-delete-btn" onclick="event.stopPropagation();deleteShipment(${s.num})" title="Delete shipment">🗑</button>
-        <span class="sh-chevron">▼</span>
-      </div>
-    </div>
-    <div class="shipment-body">
-      <div class="meta-grid">
-        ${s.planned ? `<div class="meta-item"><div class="meta-label">Planned Ship</div><div class="meta-value">${s.planned}</div></div>` : ''}
-        ${s.confirmed ? `<div class="meta-item"><div class="meta-label">Confirmed Ship</div><div class="meta-value">${s.confirmed}</div></div>` : ''}
-        ${s.delivery ? `<div class="meta-item"><div class="meta-label">Delivery Date</div><div class="meta-value">${s.delivery}</div></div>` : ''}
-        ${s.ior ? `<div class="meta-item"><div class="meta-label">IOR Partner</div><div class="meta-value">${s.ior}</div></div>` : ''}
-        ${s.invoice ? `<div class="meta-item"><div class="meta-label">IOR Invoice #</div><div class="meta-value link">${s.invoice}</div></div>` : ''}
-      </div>
-      <div class="cost-grid">
-        <div class="cost-item"><div class="cost-label">Local Tax & Duties</div><div class="cost-value">${s.taxes}</div></div>
-        <div class="cost-item"><div class="cost-label">IOR & Brokerage</div><div class="cost-value">${s.brokerage}</div></div>
-        <div class="cost-item"><div class="cost-label">Fixed Cost</div><div class="cost-value">${s.fixed}</div></div>
-        <div class="cost-item"><div class="cost-label">Variable Cost</div><div class="cost-value">${s.variable}</div></div>
-        <div class="cost-item"><div class="cost-label">FB Service & Handling</div><div class="cost-value">${s.handling}</div></div>
-        <div class="cost-item"><div class="cost-label">Quote to Customer</div><div class="cost-value highlight">${s.quote}</div></div>
-        ${s.fbCost ? `<div class="cost-item"><div class="cost-label">FB Cost</div><div class="cost-value fb">${s.fbCostRaw ? '<span style="color:var(--muted);font-size:11px">('+s.fbCostRaw+')</span> ' : ''}${s.fbCost}</div></div>` : ''}
-      </div>
-      ${itemRows ? `
-      <table class="items-table">
-        <thead><tr><th>Country</th><th>Item</th><th style="text-align:center">Count</th><th style="text-align:center">Weight (lbs)</th><th style="text-align:right">Value</th></tr></thead>
-        <tbody>${itemRows}</tbody>
-        <tfoot><tr class="total-row">
-          <td colspan="2" style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace">Total</td>
-          <td style="text-align:center;font-family:'DM Mono',monospace;color:var(--accent)">${totalCount}</td>
-          <td style="text-align:center;font-family:'DM Mono',monospace;color:var(--accent)"></td>
-          <td style="text-align:right;font-family:'DM Mono',monospace;color:var(--green);font-weight:700">${s.quote}</td>
-        </tr></tfoot>
-      </table>` : ''}
-    </div>
-  </div>`;
-}
-
-// ══════════════════════════════════════════════════════════
-// REPOSITORY v2 — INVOICE-STYLE RENDERER
-// Reads from the same shipments[] array; same backend writes.
-// ══════════════════════════════════════════════════════════
-let repo2Inited = false;
-
-function initRepoV2() {
-  // Reuse v1's loaded data if available; otherwise trigger a load
-  if (repoLoaded) {
-    populateRepo2Filters();
-    renderRepoV2();
-    return;
-  }
-  document.getElementById('repo2-content').innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-family:\'DM Mono\',monospace;font-size:13px;">Loading shipments…</div>';
-  loadShipments().then(() => {
-    repoLoaded = true;
-    populateRepo2Filters();
-    renderRepoV2();
-  });
-}
-
-function populateRepo2Filters() {
-  const clients = [...new Set(shipments.map(s => s.client))].sort();
-  const iors = [...new Set(shipments.map(s => s.ior).filter(Boolean))].sort();
-  const cs = document.getElementById('repo2-filter-client');
-  cs.innerHTML = '<option value="">All Clients</option>';
-  clients.forEach(c => { const o=document.createElement('option'); o.value=o.textContent=c; cs.appendChild(o); });
-  const is = document.getElementById('repo2-filter-ior');
-  is.innerHTML = '<option value="">All IOR Partners</option>';
-  iors.forEach(i => { const o=document.createElement('option'); o.value=o.textContent=i; is.appendChild(o); });
-}
-
-function escapeHtmlV2(s) {
-  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
-
-function renderRepoV2() {
-  const search = document.getElementById('repo2-search').value.toLowerCase();
-  const clientF = document.getElementById('repo2-filter-client').value;
-  const iorF = document.getElementById('repo2-filter-ior').value;
-
-  let filtered = shipments.filter(s => {
-    if (clientF && s.client !== clientF) return false;
-    if (iorF && s.ior !== iorF) return false;
-    if (search) {
-      const hay = [s.client, s.orderId, s.ior, s.invoice, ...s.items.map(i=>i.item+i.country)].join(' ').toLowerCase();
-      if (!hay.includes(search)) return false;
-    }
-    return true;
-  });
-
-  filtered.sort((a, b) => (b.num || 0) - (a.num || 0));
-
-  document.getElementById('repo2-stats').textContent = filtered.length + ' of ' + shipments.length + ' shipments';
-
-  const byMonth = {};
-  filtered.forEach(s => { if (!byMonth[s.month]) byMonth[s.month] = []; byMonth[s.month].push(s); });
-
-  const html = Object.entries(byMonth).map(([month, list]) => `
-    <div class="month-section-v2">
-      <div class="month-banner-v2">${escapeHtmlV2(month) || 'Unscheduled'} Shipments</div>
-      ${list.map(s => renderBlockV2(s)).join('')}
-    </div>
-  `).join('');
-
-  document.getElementById('repo2-content').innerHTML = html || '<div class="empty-state" style="padding:48px;text-align:center;color:var(--muted)">No shipments match your filters.</div>';
-}
-
-function renderBlockV2(s) {
-  const id = 'ship2-' + s.num;
-  const e = escapeHtmlV2;
+  const e = escapeHtml;
 
   const itemsFiltered = s.items.filter(i => i.item || i.country);
 
@@ -2813,11 +3195,9 @@ function renderBlockV2(s) {
   const totalCount = itemsFiltered.reduce((a,i)=>a+(parseInt(i.count)||0),0);
   const totalWeight = itemsFiltered.reduce((a,i)=>a+(parseInt(i.weight)||0),0);
 
-  const deliveryStatusClass = s.delivery ? 'sh2-delivered' : 'sh2-pending';
-
   return `
   <div class="shipment-v2-block" id="${id}">
-    <div class="shipment-v2-header ${deliveryStatusClass}" onclick="toggleBlockV2('${id}')">
+    <div class="shipment-v2-header" onclick="toggleBlock('${id}')">
       <div class="sh2-left">
         <span class="sh2-num">#${s.num}</span>
         <span class="sh2-client">${e(s.client)}</span>
@@ -2830,15 +3210,16 @@ function renderBlockV2(s) {
         ${s.ior ? `<span class="sh2-ior">${e(s.ior)}</span>` : ''}
         <button class="sh2-action-btn sh2-pdf-btn" onclick="event.stopPropagation();exportPDF(${s.num})" title="Export PDF">PDF</button>
         <button class="sh2-action-btn sh2-edit-btn" onclick="event.stopPropagation();openEditShipment(${s.num})" title="Edit shipment">✏ Edit</button>
-        <button class="sh2-action-btn sh2-delete-btn" onclick="event.stopPropagation();deleteShipmentV2(${s.num})" title="Delete shipment">🗑</button>
+        <button class="sh2-action-btn sh2-delete-btn" onclick="event.stopPropagation();deleteShipment(${s.num})" title="Delete shipment">🗑</button>
         <span class="sh2-chevron">▼</span>
       </div>
     </div>
     <div class="shipment-v2-body">
       <div class="inv-wrap">
         <div class="inv-banner">Shipment #${s.num}</div>
-        <div class="inv-meta-head">
+        <div class="inv-meta-head cols-8">
           <div>Client Name</div>
+          <div>End User Name</div>
           <div>Firstbase Order ID</div>
           <div>Planned Ship Date</div>
           <div>Confirmed Ship Date</div>
@@ -2846,8 +3227,9 @@ function renderBlockV2(s) {
           <div>IOR Name</div>
           <div>IOR Invoice#</div>
         </div>
-        <div class="inv-meta-row">
+        <div class="inv-meta-row cols-8">
           <div><em>${e(s.client)}</em></div>
+          <div>${e(s.endUser)}</div>
           <div>${e(s.orderId)}</div>
           <div>${e(s.planned)}</div>
           <div>${e(s.confirmed)}</div>
@@ -2895,29 +3277,10 @@ function renderBlockV2(s) {
   </div>`;
 }
 
-function toggleBlockV2(id) {
+function toggleBlock(id) {
   const el = document.getElementById(id);
   if (el) el.classList.toggle('open');
 }
-
-async function deleteShipmentV2(num) {
-  if (!confirm('Delete Shipment #' + num + '? This cannot be undone.')) return;
-  const res = await gasPost({ action: 'deleteShipment', num: num });
-  if (!res || !res.success) {
-    alert('Delete failed: ' + (res && res.error ? res.error : 'check Apps Script URL'));
-    return;
-  }
-  const idx = shipments.findIndex(s => s.num === num);
-  if (idx !== -1) shipments.splice(idx, 1);
-  populateRepo2Filters();
-  renderRepoV2();
-  // Also re-render v1 if it's been initialized
-  if (typeof repoInited !== 'undefined' && repoInited) {
-    repoInited = false;
-    initRepo();
-  }
-}
-
 
 async function deleteShipment(num) {
   if (!confirm('Delete Shipment #' + num + '? This cannot be undone.')) return;
@@ -2928,9 +3291,8 @@ async function deleteShipment(num) {
   }
   const idx = shipments.findIndex(s => s.num === num);
   if (idx !== -1) shipments.splice(idx, 1);
-  repoInited = false;
-  initRepo();
-  if (document.getElementById('tab-repository-v2')) { populateRepo2Filters(); renderRepoV2(); }
+  populateRepoFilters();
+  renderRepo();
 }
 
 function exportPDF(num) {
@@ -3003,6 +3365,7 @@ function exportPDF(num) {
     <strong>Shipment #${s.num}</strong><br>
     Quote Date: ${today}<br>
     Client: ${s.client}<br>
+    ${s.endUser ? 'End User: ' + s.endUser + '<br>' : ''}
     ${s.orderId ? 'Order ID: ' + s.orderId : ''}
   </div>
 </div>
@@ -3056,11 +3419,6 @@ ${metaRows ? `<div class="section-title">Shipment Details</div>
   const url = URL.createObjectURL(blob);
   const win = window.open(url, '_blank');
   if (!win) alert('Please allow popups to generate the PDF.');
-}
-
-function toggleBlock(id) {
-  const el = document.getElementById(id);
-  if (el) el.classList.toggle('open');
 }
 
 // ── ADD SHIPMENT MODAL ───────────────────────────────────────────
@@ -3163,7 +3521,7 @@ function openAddShipment() {
   for (let i = 0; i < 5; i++) addItemRow();
 
   // Reset all fields
-  ['m-client','m-orderid','m-planned','m-confirmed','m-delivery','m-ior','m-invoice'].forEach(id => {
+  ['m-client','m-enduser','m-orderid','m-planned','m-confirmed','m-delivery','m-ior','m-invoice'].forEach(id => {
     const el = document.getElementById(id); if (el) el.value = '';
   });
   // Reset date pickers
@@ -3210,6 +3568,7 @@ function openEditShipment(num) {
 
   // Fill basic fields
   document.getElementById('m-client').value    = s.client || '';
+  document.getElementById('m-enduser').value   = s.endUser || '';
   document.getElementById('m-orderid').value   = s.orderId || '';
   document.getElementById('m-planned').value   = s.planned || '';
   document.getElementById('m-confirmed').value = s.confirmed || '';
@@ -3250,7 +3609,7 @@ function openEditShipment(num) {
   document.getElementById('m-variable').value     = parseMoney(s.variable) || '';
   document.getElementById('m-handling').value     = parseMoney(s.handling) || '';
   document.getElementById('m-quote-input').value  = parseMoney(s.quote)    || '';
-  document.getElementById('m-fbcost').value       = parseMoney(s.fbCostRaw || s.fbCost) || '';
+  document.getElementById('m-fbcost').value       = parseMoney(s.fbCostRaw)|| '';
 
   document.getElementById('modal-error').style.display = 'none';
 
@@ -3271,7 +3630,7 @@ async function loadProducts() {
     // Product data lives in a separate sheet
     const PRODUCT_SHEET_ID = '1C1SP8Txx-DyoJOJzdsePyIAEEZRP-_h6qPL1GkYtoaM';
     const productCsvUrl = `https://docs.google.com/spreadsheets/d/${PRODUCT_SHEET_ID}/export?format=csv&gid=0`;
-    const text = await fetch(productCsvUrl).then(r => r.text());
+    const text = await fetchWithTimeout(productCsvUrl).then(r => r.text());
     // This sheet has a 2-row header: row1 = group labels, row2 = column names
     // Columns (0-indexed): 0=Item Name, 1=Category, 2=Country of Origin, 3=Value,
     //   4=L(in), 5=W(in), 6=H(in), 7=Weight(lbs), 8=L(cm), 9=W(cm), 10=H(cm), 11=Weight(kgs), 12=US Tariff Code
@@ -3430,9 +3789,9 @@ function renderProdOptions(rowId, query) {
       data-weight="${p.weight}"
       data-value="${p.value}"
       onclick="selectProdOption('${rowId}', this)">
-      <span class="prod-option-name">${p.name}</span>
+      <span class="prod-option-name">${escapeHtml(p.name)}</span>
       <span class="prod-option-meta">
-        ${p.category ? `<span class="prod-option-cat">${p.category}</span>` : ''}
+        ${p.category ? `<span class="prod-option-cat">${escapeHtml(p.category)}</span>` : ''}
         <span class="prod-option-weight">${p.weight} lbs</span>
       </span>
     </div>`).join('');
@@ -3483,6 +3842,8 @@ function refreshAllDataLists() {
     const si = document.querySelector('#pdw-' + row.id + ' .prod-search-input');
     renderProdOptions(row.id, si ? si.value : '');
   });
+  const calcSi = document.querySelector('#pdw-calc-product .prod-search-input');
+  if (calcSi) renderCalcProdOptions(calcSi.value);
 }
 
 function onProductSelect() {} // no-op, handled by selectProdOption now
@@ -3595,11 +3956,11 @@ function renderProductTable() {
       <td style="padding:0 4px 0 12px;width:36px;text-align:center;">
         <input type="checkbox" class="product-row-cb" ${isChecked?'checked':''} onclick="toggleProductSelection('${safeNameAttr}', this.checked)" />
       </td>
-      <td style="padding:9px 10px;font-family:'DM Mono',monospace;font-size:11px;color:var(--text);max-width:260px;">${p.name}</td>
+      <td style="padding:9px 10px;font-family:'DM Mono',monospace;font-size:11px;color:var(--text);max-width:260px;">${escapeHtml(p.name)}</td>
       <td style="padding:9px 10px;">
-        <span style="display:inline-block;background:rgba(124,58,237,0.08);color:#7c3aed;border:1px solid rgba(124,58,237,0.15);border-radius:4px;padding:2px 7px;font-family:'DM Mono',monospace;font-size:10px;">${p.category||'—'}</span>
+        <span style="display:inline-block;background:rgba(124,58,237,0.08);color:#7c3aed;border:1px solid rgba(124,58,237,0.15);border-radius:4px;padding:2px 7px;font-family:'DM Mono',monospace;font-size:10px;">${escapeHtml(p.category)||'—'}</span>
       </td>
-      <td style="padding:9px 10px;font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);">${p.origin||'—'}</td>
+      <td style="padding:9px 10px;font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);">${escapeHtml(p.origin)||'—'}</td>
       <td style="padding:9px 10px;font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);text-align:right;">${p.value?'$'+parseFloat(p.value).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'—'}</td>
       <td style="${dc}">${p.lIn||'—'}</td>
       <td style="${dc}">${p.wIn||'—'}</td>
@@ -3609,7 +3970,7 @@ function renderProductTable() {
       <td style="${dc}">${p.wCm||'—'}</td>
       <td style="${dc}">${p.hCm||'—'}</td>
       <td style="${dc}">${p.weightKg||'—'}</td>
-      <td style="padding:9px 10px;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);text-align:center;">${p.tariffCode||'—'}</td>
+      <td style="padding:9px 10px;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);text-align:center;">${escapeHtml(p.tariffCode)||'—'}</td>
       <td style="padding:9px 10px;text-align:center;">
         ${p.custom
           ? `<span style="background:rgba(37,99,235,0.08);color:var(--accent);border:1px solid rgba(37,99,235,0.18);border-radius:4px;padding:2px 7px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.05em;">CUSTOM</span>`
@@ -3624,8 +3985,12 @@ function renderProductTable() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-  // Load all data from Google Sheets in parallel
-  await Promise.all([ loadRates(), loadProducts() ]);
+  // Seed the hardcoded rate table first, then overlay the live Custom
+  // Countries sheet (must run after loadRates(), since loadRates()
+  // reassigns `rates` wholesale and would wipe out the overlay otherwise).
+  await loadRates();
+  await Promise.all([ loadCustomCountries(), loadProducts() ]);
+  onWarehouseChange(); // refresh destination dropdown with any custom countries
   renderProductTable();
 });
 
@@ -3690,15 +4055,9 @@ const COUNTRY_RATES = {
 function onCountrySelect(selectEl) {
   const country = selectEl.value;
   if (!country || !COUNTRY_RATES[country]) return;
-  // Only auto-fill suggested defaults for brand-new shipments, and only into
-  // fields the user hasn't already filled in. Never clobber costs that were
-  // already entered/saved on an existing shipment being edited.
-  if (editingShipmentNum !== null) return;
   const r = COUNTRY_RATES[country];
-  const iorFeeEl = document.getElementById('m-ior-fee');
-  const fixedEl  = document.getElementById('m-fixed');
-  if (iorFeeEl && !iorFeeEl.value) iorFeeEl.value = r.ior;
-  if (fixedEl && !fixedEl.value)   fixedEl.value  = r.fixed;
+  document.getElementById('m-ior-fee').value = r.ior;
+  document.getElementById('m-fixed').value   = r.fixed;
 }
 
 function recalcModal() {
@@ -3740,6 +4099,7 @@ async function submitShipment() {
     month:     month || '',
     num:       shipNum,
     client:    client || '',
+    endUser:   document.getElementById('m-enduser').value.trim(),
     orderId:   document.getElementById('m-orderid').value.trim(),
     planned:   document.getElementById('m-planned').value.trim(),
     confirmed: document.getElementById('m-confirmed').value.trim(),
@@ -3771,10 +4131,8 @@ async function submitShipment() {
       editingShipmentNum = null;
 
       // Re-render without re-fetching from Sheets (to preserve the in-memory edit)
-      repoInited = false;
       repoLoaded = true; // keep true so initRepo() skips the fetch
       initRepo();
-      if (document.getElementById('tab-repository-v2')) { populateRepo2Filters(); renderRepoV2(); }
       closeAddShipment();
       setTimeout(() => {
         const el = document.getElementById('ship-' + shipNum);
@@ -3794,10 +4152,8 @@ async function submitShipment() {
 
     if (res && res.success) {
       shipments.push(newShipment);
-      repoInited = false;
-      repoLoaded = true; // keep true so initRepo() skips the fetch (avoid clobbering the shipment we just added)
+      repoLoaded = false;
       initRepo();
-      if (document.getElementById('tab-repository-v2')) { populateRepo2Filters(); renderRepoV2(); }
       closeAddShipment();
       setTimeout(() => {
         const el = document.getElementById('ship-' + shipNum);
@@ -3820,12 +4176,11 @@ function generateQuotePDF() {
   const val     = parseFloat(document.getElementById('value').value);
   const qty     = Math.max(1, parseInt(document.getElementById('quantity').value)||1);
 
-  const warehouseLabels = { us:'US (Salt Lake City)', de:'Germany (EU)', de_ret:'Germany - Returns', sg:'Singapore' };
+  const warehouseLabels = { us:'US (Salt Lake City)', de:'Germany (EU)', sg:'Singapore' };
   const whLabel = warehouseLabels[wh] || wh;
   const currency = (rates[wh] && rates[wh].currency) ? rates[wh].currency : 'USD';
   const currSymbol = currency === 'EUR' ? '\u20ac' : '$';
   const currLabel  = currency === 'EUR' ? 'EUR' : 'USD';
-  const isReturns  = wh === 'de_ret';
 
   const get  = id => document.getElementById(id).textContent;
   const date = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
@@ -3902,9 +4257,9 @@ function generateQuotePDF() {
   y += 4;
 
   // ── Cost table ───────────────────────────────────────────────
-  const dutyLabel = (isReturns ? 'German Import VAT ' : 'Local Duties & Tax ') + get('r-duty-pct');
-  const iorLabel  = 'IOR Minimum Fee' + (qty > 1 && !isReturns ? ' (\xd7' + qty + ')' : '');
-  const fixedLabel= 'Fixed Cost - Freight & Brokerage' + (qty > 1 && !isReturns ? ' (\xd7' + qty + ')' : '');
+  const dutyLabel = 'Local Duties & Tax ' + get('r-duty-pct');
+  const iorLabel  = 'IOR Minimum Fee' + (qty > 1 ? ' (\xd7' + qty + ')' : '');
+  const fixedLabel= 'Fixed Cost - Freight & Brokerage' + (qty > 1 ? ' (\xd7' + qty + ')' : '');
 
   doc.autoTable({
     startY: y,
@@ -3969,17 +4324,6 @@ function generateQuotePDF() {
 
   y += 8;
 
-  // ── Footnote for Germany - Returns (plain text, no bubble) ───
-  if (isReturns) {
-    const footnoteText = '* Returns from Switzerland and Norway are imported into the Firstbase Germany warehouse and processed through the EU warehouse lifecycle (reuse, storage, or ITAD). Only export/import service fees apply; standard return action fees do not apply.';
-    doc.setFont('helvetica', 'italic');
-    doc.setFontSize(7.5);
-    doc.setTextColor(100, 116, 139);
-    const fnLines = doc.splitTextToSize(footnoteText, contentW);
-    doc.text(fnLines, margin, y);
-    y += fnLines.length * 4 + 4;
-  }
-
   // ── Disclaimer ───────────────────────────────────────────────
   doc.setDrawColor(226, 232, 240);
   doc.line(margin, y, margin + contentW, y);
@@ -4019,10 +4363,9 @@ function fmtQuoteVal(amt, cur) {
 }
 
 const CQ_WAREHOUSE_LABELS = {
-  us:     'US (Salt Lake City)',
-  de:     'Germany (EU)',
-  de_ret: 'Germany - Returns',
-  sg:     'Singapore'
+  us: 'US (Salt Lake City)',
+  de: 'Germany (EU)',
+  sg: 'Singapore'
 };
 
 function onQuoteWarehouseChange() {
@@ -4322,76 +4665,8 @@ function generateCreateQuotePDF() {
   doc.save(filename);
 }
 
-// ── CUSTOM COUNTRIES (Google Sheets via Apps Script) ─────────────
-function openAddCountry() {
-  document.getElementById('ac-name').value='';
-  document.getElementById('ac-duty').value='';
-  document.getElementById('ac-ior').value='';
-  document.getElementById('ac-fixed').value='';
-  document.getElementById('ac-error').style.display='none';
-  const modal = document.getElementById('add-country-modal');
-  modal.style.display='flex';
-  setTimeout(()=>document.getElementById('ac-name').focus(), 50);
-}
-
-function closeAddCountry() {
-  document.getElementById('add-country-modal').style.display='none';
-}
-
-async function submitAddCountry() {
-  const name     = document.getElementById('ac-name').value.trim();
-  const dutyRaw  = document.getElementById('ac-duty').value.trim();
-  const iorRaw   = document.getElementById('ac-ior').value.trim();
-  const fixedRaw = document.getElementById('ac-fixed').value.trim();
-
-  if (!name)                         { showAcError('Country name is required.'); return; }
-  if (dutyRaw===''||isNaN(+dutyRaw)) { showAcError('Local Duties & Tax is required and must be a number.'); return; }
-  if (iorRaw===''||isNaN(+iorRaw))   { showAcError('IOR Minimum Fee is required and must be a number.'); return; }
-  if (fixedRaw===''||isNaN(+fixedRaw)){ showAcError('Fixed Cost Per Shipment is required and must be a number.'); return; }
-
-  // Check duplicate against current rate data
-  const wh = document.getElementById('warehouse').value || 'us';
-  if (rates[wh] && rates[wh].countries[name]) {
-    showAcError(`"${name}" already exists in the country list.`);
-    return;
-  }
-
-  const duty  = parseFloat(dutyRaw) / 100;
-  const ior   = parseFloat(iorRaw);
-  const fixed = parseFloat(fixedRaw);
-
-  const btn = document.querySelector('#add-country-modal button[onclick="submitAddCountry()"]');
-  if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
-
-  const res = await gasPost({ action:'addCountry', name, duty, ior, fixed, transit:'~20 business days' });
-
-  if (btn) { btn.disabled = false; btn.textContent = 'Save Country'; }
-
-  if (res && res.success) {
-    closeAddCountry();
-    // Add to local rates immediately so UI updates without reload
-    Object.keys(rates).forEach(w => {
-      rates[w].countries[name] = { duty, ior, fixed, transit:'~20 business days' };
-    });
-    onWarehouseChange();
-    const cs = document.getElementById('country');
-    cs.value = name;
-    calculate();
-  } else {
-    showAcError('Save failed: ' + (res && res.error ? res.error : 'unknown error'));
-  }
-}
-
-function showAcError(msg) {
-  const el = document.getElementById('ac-error');
-  el.textContent = msg;
-  el.style.display = 'block';
-}
-
 // Close modal on backdrop click
 document.addEventListener('click', (e) => {
-  const modal = document.getElementById('add-country-modal');
-  if (modal && e.target === modal) closeAddCountry();
   const tenkModal = document.getElementById('tenk-modal');
   if (tenkModal && e.target === tenkModal) tenkModal.style.display='none';
   const qrModal = document.getElementById('qr-modal');
@@ -4480,10 +4755,9 @@ function generateQuoteEmail() {
   const destVal   = document.getElementById('qr-destination').value;
 
   const originLabels = {
-    us:     'Firstbase US Warehouse (Salt Lake City, Utah)',
-    de:     'Firstbase Germany Warehouse (EU)',
-    de_ret: 'Firstbase Germany Warehouse – Returns',
-    sg:     'Firstbase Singapore Warehouse'
+    us: 'Firstbase US Warehouse (Salt Lake City, Utah)',
+    de: 'Firstbase Germany Warehouse (EU)',
+    sg: 'Firstbase Singapore Warehouse'
   };
   const originLabel = originLabels[originVal] || (originVal || '[Origin warehouse – please select above]');
   const destLabel   = destVal || '[Destination country – please select above]';
@@ -4828,90 +5102,5 @@ function copyRfqEmail() {
   }, 2200);
 }
 </script>
-
-<!-- ── CLERK SSO INITIALISATION ─────────────────────────────────── -->
-<script>
-(async function () {
-  const gate      = document.getElementById('clerk-gate');
-  const loadingEl = document.getElementById('clerk-loading');
-  const signInEl  = document.getElementById('clerk-sign-in-mount');
-  const userEl    = document.getElementById('clerk-user-mount');
-  const userBar   = document.getElementById('clerk-user-bar');
-  const mainApp   = document.getElementById('main-app');
-
-  // ── 1. Allowed email domains ─────────────────────────────────────
-  const ALLOWED_DOMAINS = ['firstbase.com', 'appdirect.com'];
-
-  function getEmailDomain(user) {
-    const email = (user && user.primaryEmailAddress && user.primaryEmailAddress.emailAddress) || '';
-    return email.split('@')[1] || '';
-  }
-  function isDomainAllowed(user) {
-    return ALLOWED_DOMAINS.includes(getEmailDomain(user));
-  }
-  function showDomainError(user) {
-    signInEl.innerHTML = '';
-    const domain = getEmailDomain(user);
-    loadingEl.style.cssText = 'display:block;max-width:400px;text-align:center;line-height:1.7;font-family:Plus Jakarta Sans,sans-serif;font-size:13px';
-    loadingEl.innerHTML =
-      '⛔ <strong>Access denied.</strong><br>' +
-      '<em>' + domain + '</em> accounts cannot access this dashboard.<br>' +
-      'Use a <strong>@firstbase.com</strong> or <strong>@appdirect.com</strong> Google account.<br><br>' +
-      '<button onclick="window.__clerk.signOut().then(()=>location.reload())" ' +
-      'style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:10px 22px;' +
-      'font-family:Syne,sans-serif;font-size:13px;font-weight:700;cursor:pointer">Sign out &amp; try again</button>';
-  }
-  function showApp(clerk) {
-    gate.style.display = 'none';
-    mainApp.style.display = '';
-    userBar.classList.add('visible');
-    clerk.mountUserButton(userEl, {
-      appearance: { elements: { userButtonAvatarBox: { width: '32px', height: '32px' } } }
-    });
-  }
-
-  // ── 2. Boot Clerk v4 (window.Clerk is a pre-init instance on CDN) ─
-  try {
-    const clerk = window.Clerk;
-    window.__clerk = clerk;
-    await clerk.load();
-
-    // ── 3. Already signed in? ──────────────────────────────────────
-    if (clerk.user) {
-      isDomainAllowed(clerk.user) ? showApp(clerk) : showDomainError(clerk.user);
-      return;
-    }
-
-    // ── 4. Show sign-in widget ─────────────────────────────────────
-    loadingEl.style.display = 'none';
-    clerk.mountSignIn(signInEl, {
-      appearance: {
-        elements: {
-          rootBox: { width: '100%' },
-          card:    { boxShadow: '0 4px 24px rgba(0,0,0,0.08)', borderRadius: '14px' }
-        }
-      }
-    });
-
-    // ── 5. Listen for sign-in, enforce domain ─────────────────────
-    clerk.addListener(function (resources) {
-      const user = resources.user;
-      if (!user) return;
-      isDomainAllowed(user) ? showApp(clerk) : showDomainError(user);
-    });
-
-  } catch (err) {
-    console.error('Clerk init error:', err);
-    loadingEl.style.cssText = 'display:block;max-width:400px;text-align:center;line-height:1.7;font-family:Plus Jakarta Sans,sans-serif;font-size:13px';
-    loadingEl.innerHTML =
-      '⚠️ Sign-in failed to load.<br>' +
-      '<button onclick="location.reload()" ' +
-      'style="margin-top:12px;background:var(--accent);color:#fff;border:none;border-radius:8px;' +
-      'padding:10px 22px;font-family:Syne,sans-serif;font-size:13px;font-weight:700;cursor:pointer">' +
-      'Retry</button>';
-  }
-}());
-</script>
-<!-- ──────────────────────────────────────────────────────────────── -->
 </body>
 </html>
