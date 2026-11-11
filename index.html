@@ -4535,19 +4535,28 @@ function generateCreateQuotePDF() {
 
   // ── Shipment summary block (only if any provided) ───────────
   if (whLabel || country || qty || product) {
-    doc.setFillColor(248, 250, 252);
-    doc.setDrawColor(226, 232, 240);
-    doc.roundedRect(margin, y, contentW, 26, 3, 3, 'FD');
-
     // 4 columns when product is present, otherwise 3
     const cols    = product ? 4 : 3;
     const colW    = contentW / cols;
     const labels  = product
       ? ['ORIGIN WAREHOUSE', 'DESTINATION', 'PRODUCT TYPE', 'QUANTITY']
       : ['ORIGIN WAREHOUSE', 'DESTINATION', 'QUANTITY'];
-    const values  = product
+    const rawValues = product
       ? [whLabel || '—', country || '—', product, qty.toString()]
       : [whLabel || '—', country || '—', qty.toString()];
+
+    // Wrap each value to its column so long text never runs into the next cell
+    const valFontSize = cols === 4 ? 9 : 10;
+    const lineH = 4.2;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(valFontSize);
+    const wrapped = rawValues.map(v => doc.splitTextToSize(String(v), colW - 12));
+    const maxLines = Math.max(...wrapped.map(l => l.length));
+    const boxH = Math.max(26, 19 + (maxLines - 1) * lineH + 7);
+
+    doc.setFillColor(248, 250, 252);
+    doc.setDrawColor(226, 232, 240);
+    doc.roundedRect(margin, y, contentW, boxH, 3, 3, 'FD');
 
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(7);
@@ -4556,15 +4565,16 @@ function generateCreateQuotePDF() {
 
     doc.setDrawColor(226, 232, 240);
     for (let i = 1; i < cols; i++) {
-      doc.line(margin + colW * i, y + 2, margin + colW * i, y + 24);
+      doc.line(margin + colW * i, y + 2, margin + colW * i, y + boxH - 2);
     }
 
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(cols === 4 ? 9 : 10);
+    doc.setFontSize(valFontSize);
     doc.setTextColor(15, 23, 42);
-    values.forEach((v, i) => doc.text(String(v), margin + colW * i + 8, y + 19));
+    wrapped.forEach((lines, i) => lines.forEach((ln, k) =>
+      doc.text(ln, margin + colW * i + 8, y + 19 + k * lineH)));
 
-    y += 34;
+    y += boxH + 8;
   }
 
   // ── Section label ────────────────────────────────────────────
