@@ -1883,8 +1883,8 @@
         </select>
       </div>
       <div class="field">
-        <label>Product Type</label>
-        <input type="text" id="cq-product" placeholder="e.g. Laptops, Monitors, Accessories" oninput="calculateQuote()" />
+        <label>Product Type <span style="color:var(--warn);font-size:11px;">*</span></label>
+        <input type="text" id="cq-product" required placeholder="e.g. Laptops, Monitors, Accessories" oninput="calculateQuote()" />
       </div>
       <div class="field">
         <label>Currency</label>
@@ -4447,6 +4447,13 @@ function calculateQuote() {
 }
 
 function generateCreateQuotePDF() {
+  const productEl = document.getElementById('cq-product');
+  if (!(productEl.value || '').trim()) {
+    alert('Product Type is required.');
+    productEl.focus();
+    return;
+  }
+
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: 'mm', format: 'a4' });
 
@@ -4493,8 +4500,6 @@ function generateCreateQuotePDF() {
   doc.setFontSize(8);
   doc.setTextColor(148, 163, 184);
   doc.text(date, pageW - margin, 13, { align: 'right' });
-  doc.setTextColor(251, 191, 36);
-  doc.text('ESTIMATE ONLY', pageW - margin, 21, { align: 'right' });
 
   doc.setFillColor(37, 99, 235);
   doc.rect(0, 32, pageW, 2, 'F');
@@ -4572,18 +4577,12 @@ function generateCreateQuotePDF() {
   y += 4;
 
   // ── Cost table ───────────────────────────────────────────────
-  const pdfBody = [];
-  if (product) pdfBody.push(['Product Type', product]);
-  pdfBody.push(
-    ['Declared Value per Unit',        fmtQuoteVal(val, currency)],
-    ['Quantity',                       qty.toString()],
-    ['Total Declared Value',           fmtQuoteVal(totalVal, currency)],
-    ['Local Duties & Tax',             fmtQuote(duty, currency)],
-    ['IOR Minimum Fee',                fmtQuote(ior, currency)],
+  const pdfBody = [
+    ['Local Duties & Tax',              fmtQuote(duty, currency)],
+    ['IOR Minimum Fee',                 fmtQuote(ior, currency)],
     ['Fixed Cost - Freight & Brokerage', fmtQuote(fixed, currency)],
-    ['Subtotal Export Charges',        fmtQuote(subtotal, currency)],
-    ['Firstbase Service & Handling (8%)', fmtQuote(handling, currency)]
-  );
+    ['Firstbase Service & Handling',    fmtQuote(handling, currency)]
+  ];
 
   doc.autoTable({
     startY: y,
