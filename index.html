@@ -5093,12 +5093,12 @@ function generatePartnerRFQ() {
       productSection += '\nProduct ' + (i + 1) + ': ' + p.product + '\n';
     }
     productSection +=
-      'Product Type:         ' + p.product + '\n' +
+      'Product Type:         ' + (p.category || '[To be confirmed]') + '\n' +
+      'Product Details:      ' + p.product + '\n' +
       'Quantity:             ' + p.qty + ' unit' + (p.qty !== 1 ? 's' : '') + '\n' +
       'Dimensions (per unit):' + p.dimLine + '\n' +
       'Weight (per unit):    ' + p.weightLine + '\n' +
       'Declared Value:       ' + p.valueLine +
-      (p.category ? '\nProduct Category:    ' + p.category : '') +
       (p.hsCode   ? '\nHS Code:              ' + p.hsCode : '') +
       (p.eccn     ? '\nECCN Code:            ' + p.eccn : '');
     if (i < products.length - 1) productSection += '\n';
