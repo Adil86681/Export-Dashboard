@@ -2014,6 +2014,18 @@
         <label>Destination Address</label>
         <input type="text" id="rfq-dest-address" placeholder="e.g. 1-1 Shinjuku, Tokyo 160-0001" oninput="generatePartnerRFQ()" />
       </div>
+      <div class="field">
+        <label>Recipient Name <span class="opt">(optional)</span></label>
+        <input type="text" id="rfq-recipient-name" placeholder="e.g. Jane Doe" oninput="generatePartnerRFQ()" />
+      </div>
+      <div class="field">
+        <label>Contact Number <span class="opt">(optional)</span></label>
+        <input type="text" id="rfq-contact-number" placeholder="e.g. +81 3 1234 5678" oninput="generatePartnerRFQ()" />
+      </div>
+      <div class="field full">
+        <label>Email <span class="opt">(optional)</span></label>
+        <input type="email" id="rfq-recipient-email" placeholder="e.g. jane@example.com" oninput="generatePartnerRFQ()" />
+      </div>
 
     </div>
   </div>
@@ -4891,6 +4903,19 @@ function switchQuoteMode(mode) {
   }
 }
 
+function rfqEscAttr(s) {
+  return String(s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
+function rfqCategoryOptions(selected) {
+  var cats = [...new Set(getAllProducts().map(function(p) { return p.category; }).filter(Boolean))].sort();
+  var html = '<option value="">— Select category —</option>';
+  cats.forEach(function(c) {
+    html += '<option value="' + rfqEscAttr(c) + '"' + (c === selected ? ' selected' : '') + '>' + rfqEscAttr(c) + '</option>';
+  });
+  return html;
+}
+
 function updateRfqProductBlocks() {
   const n = parseInt(document.getElementById('rfq-num-products').value) || 1;
   const container = document.getElementById('rfq-products-container');
@@ -4899,14 +4924,17 @@ function updateRfqProductBlocks() {
   const existing = [];
   container.querySelectorAll('.rfq-product-block').forEach(function(b) {
     existing.push({
-      product: b.querySelector('.rfq-prod-type').value,
-      qty:     b.querySelector('.rfq-prod-qty').value,
-      length:  b.querySelector('.rfq-prod-length').value,
-      width:   b.querySelector('.rfq-prod-width').value,
-      height:  b.querySelector('.rfq-prod-height').value,
-      weight:  b.querySelector('.rfq-prod-weight').value,
-      wunit:   b.querySelector('.rfq-prod-wunit').value,
-      value:   b.querySelector('.rfq-prod-value').value
+      product:  b.querySelector('.rfq-prod-type').value,
+      category: b.querySelector('.rfq-prod-category').value,
+      qty:      b.querySelector('.rfq-prod-qty').value,
+      length:   b.querySelector('.rfq-prod-length').value,
+      width:    b.querySelector('.rfq-prod-width').value,
+      height:   b.querySelector('.rfq-prod-height').value,
+      weight:   b.querySelector('.rfq-prod-weight').value,
+      wunit:    b.querySelector('.rfq-prod-wunit').value,
+      value:    b.querySelector('.rfq-prod-value').value,
+      hsCode:   b.querySelector('.rfq-prod-hs').value,
+      eccn:     b.querySelector('.rfq-prod-eccn').value
     });
   });
 
@@ -4932,7 +4960,13 @@ function updateRfqProductBlocks() {
       '<div class="form-grid">' +
         '<div class="field">' +
           '<label>Product Type</label>' +
-          '<input type="text" class="rfq-prod-type" placeholder="e.g. Laptops" value="' + (prev.product||'') + '" oninput="generatePartnerRFQ()" />' +
+          '<input type="text" class="rfq-prod-type" placeholder="e.g. Laptops" value="' + rfqEscAttr(prev.product) + '" oninput="generatePartnerRFQ()" />' +
+        '</div>' +
+        '<div class="field">' +
+          '<label>Product Category</label>' +
+          '<select class="rfq-prod-category" onchange="generatePartnerRFQ()" style="font-size:14px;">' +
+            rfqCategoryOptions(prev.category) +
+          '</select>' +
         '</div>' +
         '<div class="field">' +
           '<label>Quantity</label>' +
@@ -4967,6 +5001,14 @@ function updateRfqProductBlocks() {
             '<input type="number" class="rfq-prod-value" min="0" step="0.01" placeholder="e.g. 2000" value="' + (prev.value||'') + '" oninput="generatePartnerRFQ()" />' +
           '</div>' +
         '</div>' +
+        '<div class="field">' +
+          '<label>HS Code <span class="opt">(optional)</span></label>' +
+          '<input type="text" class="rfq-prod-hs" placeholder="e.g. 8471.30" value="' + rfqEscAttr(prev.hsCode) + '" oninput="generatePartnerRFQ()" />' +
+        '</div>' +
+        '<div class="field">' +
+          '<label>ECCN Code <span class="opt">(optional)</span></label>' +
+          '<input type="text" class="rfq-prod-eccn" placeholder="e.g. 5A992.c" value="' + rfqEscAttr(prev.eccn) + '" oninput="generatePartnerRFQ()" />' +
+        '</div>' +
       '</div>';
 
     container.appendChild(block);
@@ -4980,6 +5022,8 @@ function onRfqOriginChange() {
   var addrEl  = document.getElementById('rfq-origin-address');
   if (country === 'United States') {
     addrEl.value = '3815 West Parkway Blvd, West Valley City, Utah, 84120';
+  } else if (country === 'Germany') {
+    addrEl.value = 'Lise-Meitner-Str. 10, Dreieich, D-63303';
   } else {
     addrEl.value = '';
   }
@@ -4992,6 +5036,9 @@ function generatePartnerRFQ() {
   var originAddress = (document.getElementById('rfq-origin-address').value || '').trim();
   var destCountry   = (document.getElementById('rfq-dest-country').value || '').trim();
   var destAddress   = (document.getElementById('rfq-dest-address').value || '').trim();
+  var recipName     = (document.getElementById('rfq-recipient-name').value || '').trim();
+  var recipContact  = (document.getElementById('rfq-contact-number').value || '').trim();
+  var recipEmail    = (document.getElementById('rfq-recipient-email').value || '').trim();
 
   var emptyState   = document.getElementById('rfq-empty-state');
   var emailPreview = document.getElementById('rfq-email-preview');
@@ -5019,6 +5066,9 @@ function generatePartnerRFQ() {
     var product = b.querySelector('.rfq-prod-type').value.trim() || ('Product ' + (idx + 1));
     return {
       product:    product,
+      category:   b.querySelector('.rfq-prod-category').value.trim(),
+      hsCode:     b.querySelector('.rfq-prod-hs').value.trim(),
+      eccn:       b.querySelector('.rfq-prod-eccn').value.trim(),
       qty:        qty,
       dimLine:    (length && width && height)
                     ? (length + '" (L) × ' + width + '" (W) × ' + height + '" (H)')
@@ -5047,9 +5097,18 @@ function generatePartnerRFQ() {
       'Quantity:             ' + p.qty + ' unit' + (p.qty !== 1 ? 's' : '') + '\n' +
       'Dimensions (per unit):' + p.dimLine + '\n' +
       'Weight (per unit):    ' + p.weightLine + '\n' +
-      'Declared Value:       ' + p.valueLine;
+      'Declared Value:       ' + p.valueLine +
+      (p.category ? '\nProduct Category:    ' + p.category : '') +
+      (p.hsCode   ? '\nHS Code:              ' + p.hsCode : '') +
+      (p.eccn     ? '\nECCN Code:            ' + p.eccn : '');
     if (i < products.length - 1) productSection += '\n';
   });
+
+  var recipientLines = '';
+  if (recipName)    recipientLines += 'Recipient Name:     ' + recipName + '\n';
+  if (recipContact) recipientLines += 'Contact Number:     ' + recipContact + '\n';
+  if (recipEmail)   recipientLines += 'Email:              ' + recipEmail + '\n';
+  if (recipientLines) recipientLines = '\n' + recipientLines;
 
   var divider = '──────────────────────────────';
   var prodHeader = multiProduct ? ('PRODUCTS (' + products.length + ')') : 'PRODUCT DETAILS';
@@ -5064,6 +5123,7 @@ function generatePartnerRFQ() {
     'Origin Address:       ' + (originAddress || '[To be confirmed]') + '\n\n' +
     'Destination Country:  ' + (destCountry || '[To be confirmed]') + '\n' +
     'Destination Address:  ' + (destAddress || '[To be confirmed]') + '\n' +
+    recipientLines +
     divider + '\n' +
     prodHeader + '\n' +
     divider + '\n' +
