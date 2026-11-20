@@ -1878,7 +1878,7 @@
       </div>
       <div class="field">
         <label>Destination Country</label>
-        <select id="cq-country" onchange="calculateQuote()">
+        <select id="cq-country" onchange="onQuoteCountryChange()">
           <option value="">— Select origin first —</option>
         </select>
       </div>
@@ -4384,6 +4384,25 @@ const CQ_WAREHOUSE_LABELS = {
   de: 'Germany (EU)',
   sg: 'Singapore'
 };
+
+// Auto-fill quote cost inputs from the rate table when a destination is chosen.
+// Fields remain editable; this only runs on destination change.
+function onQuoteCountryChange() {
+  const wh = document.getElementById('cq-warehouse').value;
+  const country = document.getElementById('cq-country').value;
+  const r = (rates[wh] && rates[wh].countries[country]) ? rates[wh].countries[country] : null;
+  if (r) {
+    const cur = rates[wh].currency || 'USD';
+    document.getElementById('cq-currency').value = cur;
+    const val = parseFloat(document.getElementById('cq-value').value) || 0;
+    const qty = Math.max(1, parseInt(document.getElementById('cq-quantity').value) || 1);
+    document.getElementById('cq-duty').value = (val * qty * r.duty).toFixed(2);
+    document.getElementById('cq-ior').value = r.ior;
+    document.getElementById('cq-fixed').value = r.fixed;
+    document.getElementById('cq-transit').value = r.transit;
+  }
+  calculateQuote();
+}
 
 function onQuoteWarehouseChange() {
   const wh = document.getElementById('cq-warehouse').value;
