@@ -1902,12 +1902,12 @@
         <label>Declared Value per Unit</label>
         <div class="input-wrap">
           <span class="currency-prefix" id="cq-currency-prefix">$</span>
-          <input type="number" id="cq-value" min="0" step="0.01" value="2000" placeholder="e.g. 2000" oninput="calculateQuote()" />
+          <input type="number" id="cq-value" min="0" step="0.01" value="2000" placeholder="e.g. 2000" oninput="onQuoteValueChange()" />
         </div>
       </div>
       <div class="field">
         <label>Quantity</label>
-        <input type="number" id="cq-quantity" min="1" value="1" placeholder="e.g. 1" oninput="calculateQuote()" />
+        <input type="number" id="cq-quantity" min="1" value="1" placeholder="e.g. 1" oninput="onQuoteValueChange()" />
       </div>
     </div>
   </div>
@@ -4400,6 +4400,20 @@ function onQuoteCountryChange() {
     document.getElementById('cq-ior').value = r.ior;
     document.getElementById('cq-fixed').value = r.fixed;
     document.getElementById('cq-transit').value = r.transit;
+  }
+  calculateQuote();
+}
+
+// Recompute duty when value or quantity changes (duty is value-based).
+// IOR and fixed cost are per-shipment, so they are not changed here.
+function onQuoteValueChange() {
+  const wh = document.getElementById('cq-warehouse').value;
+  const country = document.getElementById('cq-country').value;
+  const r = (rates[wh] && rates[wh].countries[country]) ? rates[wh].countries[country] : null;
+  if (r) {
+    const val = parseFloat(document.getElementById('cq-value').value) || 0;
+    const qty = Math.max(1, parseInt(document.getElementById('cq-quantity').value) || 1);
+    document.getElementById('cq-duty').value = (val * qty * r.duty).toFixed(2);
   }
   calculateQuote();
 }
